@@ -4,7 +4,7 @@ import { ChromaClient } from 'chromadb';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
-import pdf from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 // Load environment variables
 dotenv.config();
@@ -88,7 +88,7 @@ function isPdfUrl(url) {
 }
 
 /**
- * Downloads and processes a PDF file
+ * Downloads and processes a PDF file using PDF.js
  */
 async function processPdf(url) {
     try {
@@ -109,15 +109,36 @@ async function processPdf(url) {
             return null;
         }
 
-        const data = await pdf(response.data);
-        
-        if (!data.text || data.text.length < 200) {
-            console.warn(`   ⚠️  PDF has insufficient content: ${data.text ? data.text.length : 0} characters`);
+        // Use PDF.js to parse the PDF
+        const pdfDocument = await pdfjsLib.getDocument({
+            data: new Uint8Array(response.data),
+            verbosity: 0 // Reduce logging
+        }).promise;
+
+        let fullText = '';
+        const numPages = pdfDocument.numPages;
+
+        // Extract text from each page
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+            try {
+                const page = await pdfDocument.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map(item => item.str)
+                    .join(' ');
+                fullText += pageText + '\n';
+            } catch (pageError) {
+                console.warn(`   ⚠️  Error processing page ${pageNum}: ${pageError.message}`);
+            }
+        }
+
+        if (!fullText || fullText.trim().length < 200) {
+            console.warn(`   ⚠️  PDF has insufficient content: ${fullText ? fullText.length : 0} characters`);
             return null;
         }
 
         // Clean up PDF text
-        let cleanText = data.text
+        let cleanText = fullText
             .replace(/\s+/g, ' ')
             .replace(/\n+/g, '\n')
             .trim();
@@ -125,10 +146,10 @@ async function processPdf(url) {
         // Limit content size
         if (cleanText.length > CONFIG.maxContentSize) {
             cleanText = cleanText.substring(0, CONFIG.maxContentSize);
-            console.warn(`   ⚠️  PDF content truncated from ${data.text.length} to ${CONFIG.maxContentSize} characters`);
+            console.warn(`   ⚠️  PDF content truncated from ${fullText.length} to ${CONFIG.maxContentSize} characters`);
         }
 
-        console.log(`   ✅ PDF processed: ${data.numpages} pages, ${cleanText.length} characters`);
+        console.log(`   ✅ PDF processed: ${numPages} pages, ${cleanText.length} characters`);
 
         return {
             url,
@@ -138,7 +159,7 @@ async function processPdf(url) {
             content: cleanText,
             internalLinks: [], // PDFs don't have internal links to crawl
             isPdf: true,
-            pageCount: data.numpages
+            pageCount: numPages
         };
 
     } catch (error) {

@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/your-username/popg-ai-chatbot#readme",
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "axios": "^1.11.0",
     "cheerio": "^1.1.2",
     "chromadb": "^1.7.3",
@@ -50,7 +51,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "openai": "^4.20.1",
-    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.4.149",
     "uuid": "^9.0.1"
   }
 }
