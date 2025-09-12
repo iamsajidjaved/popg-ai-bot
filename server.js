@@ -44,7 +44,7 @@ async function fetchPOPGPrice() {
                 'User-Agent': 'POPG-AI-Bot/1.0'
             }
         });
-        
+
         console.log('✅ POPG price fetched successfully');
         return response.data;
     } catch (error) {
@@ -60,7 +60,7 @@ function formatPriceData(priceData) {
     if (!priceData) {
         return "⚠️ Unable to fetch current POPG price data.";
     }
-    
+
     const formatPrice = (price) => `$${parseFloat(price).toFixed(5)}`;
     const formatTime = (timestamp) => {
         try {
@@ -69,7 +69,7 @@ function formatPriceData(priceData) {
             return timestamp;
         }
     };
-    
+
     return `## 💰 Current POPG Price
 
 **Average Price:** ${formatPrice(priceData.average)}
@@ -90,16 +90,16 @@ async function generateQueryEmbedding(query) {
     try {
         // Cache key for potential future caching implementation
         const startTime = Date.now();
-        
+
         const response = await openai.embeddings.create({
             model: "text-embedding-ada-002", // Matches training model
             input: query.trim(), // Clean input
             encoding_format: "float", // More efficient
         });
-        
+
         const duration = Date.now() - startTime;
         console.log(`🔍 Query embedding generated in ${duration}ms`);
-        
+
         return response.data[0].embedding;
     } catch (error) {
         console.error('❌ Error generating query embedding:', error);
@@ -113,13 +113,13 @@ async function generateQueryEmbedding(query) {
 async function searchRelevantContent(query, topK = 8) { // Increased for better context
     try {
         const searchStart = Date.now();
-        
+
         // Get the POPG content collection
         const collection = await chroma.getCollection({ name: 'popg_content' });
-        
+
         // Generate embedding for the query
         const queryEmbedding = await generateQueryEmbedding(query);
-        
+
         // Search for similar content with optimized parameters
         const results = await collection.query({
             queryEmbeddings: [queryEmbedding],
@@ -127,18 +127,18 @@ async function searchRelevantContent(query, topK = 8) { // Increased for better 
             include: ['documents', 'metadatas', 'distances'],
             // Add where clause for quality filtering if needed
         });
-        
+
         const searchDuration = Date.now() - searchStart;
         console.log(`🔍 Content search completed in ${searchDuration}ms (${results.documents[0].length} results)`);
-        
+
         // Log relevance scores for debugging
         if (results.distances && results.distances[0]) {
             const avgDistance = results.distances[0].reduce((a, b) => a + b, 0) / results.distances[0].length;
             console.log(`📊 Average relevance distance: ${avgDistance.toFixed(4)}`);
         }
-        
+
         return results;
-        
+
     } catch (error) {
         console.error('❌ Error searching content:', error);
         throw error;
@@ -151,16 +151,16 @@ async function searchRelevantContent(query, topK = 8) { // Increased for better 
 async function generateAIResponse(userQuery, relevantContent) {
     try {
         const responseStart = Date.now();
-        
+
         // Check if user is asking about POPG price (more flexible detection)
-        const isPriceQuery = (/price|cost|value|worth|usd|dollar|\$|trading|market|current/i.test(userQuery) && 
-                            /popg/i.test(userQuery)) ||
-                            /popg.*price/i.test(userQuery) ||
-                            /price.*popg/i.test(userQuery);
-        
+        const isPriceQuery = (/price|cost|value|worth|usd|dollar|\$|trading|market|current/i.test(userQuery) &&
+            /popg/i.test(userQuery)) ||
+            /popg.*price/i.test(userQuery) ||
+            /price.*popg/i.test(userQuery);
+
         let priceData = null;
         let priceContext = '';
-        
+
         if (isPriceQuery) {
             console.log('💰 Price query detected, fetching POPG price...');
             priceData = await fetchPOPGPrice();
@@ -174,11 +174,11 @@ async function generateAIResponse(userQuery, relevantContent) {
                 console.log('❌ Failed to retrieve price data');
             }
         }
-        
+
         // Filter and optimize context - only use most relevant results
         const topResults = relevantContent.documents[0].slice(0, 6); // Increased for better context
         const topMetadata = relevantContent.metadatas[0].slice(0, 6);
-        
+
         // Prepare optimized context
         const contextText = topResults
             .map((doc, index) => {
@@ -248,12 +248,12 @@ Remember: Your goal is to provide comprehensive, well-formatted responses that a
         const responseDuration = Date.now() - responseStart;
         const actualTokens = response.usage.total_tokens;
         const cost = actualTokens / 1000 * 0.00015;
-        
+
         console.log(`🤖 AI response generated in ${responseDuration}ms`);
         console.log(`📊 Actual tokens used: ${actualTokens} ($${cost.toFixed(6)})`);
 
         let formattedResponse = response.choices[0].message.content;
-        
+
         // If this was a price query and we have price data, append formatted price info
         if (isPriceQuery && priceData) {
             formattedResponse += `\n\n${formatPriceData(priceData)}`;
@@ -286,8 +286,8 @@ Remember: Your goal is to provide comprehensive, well-formatted responses that a
  * Health check endpoint
  */
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'healthy', 
+    res.json({
+        status: 'healthy',
         timestamp: new Date().toISOString(),
         service: 'AI Chatbot API'
     });
@@ -299,18 +299,18 @@ app.get('/api/health', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, conversationId } = req.body;
-        
+
         if (!message || !message.trim()) {
-            return res.status(400).json({ 
-                error: 'Message is required' 
+            return res.status(400).json({
+                error: 'Message is required'
             });
         }
 
         console.log(`💬 New query: "${message}"`);
-        
+
         // Search for relevant content using ChromaDB
         const relevantContent = await searchRelevantContent(message.trim());
-        
+
         if (!relevantContent.documents[0] || relevantContent.documents[0].length === 0) {
             return res.json({
                 response: "I apologize, but I couldn't find relevant information in my knowledge base to answer your question. Please make sure the AI has been trained on POPG content by running 'npm run train' first.",
@@ -318,24 +318,24 @@ app.post('/api/chat', async (req, res) => {
                 conversationId: conversationId || Date.now().toString()
             });
         }
-        
+
         // Generate AI response using OpenAI
         const aiResult = await generateAIResponse(message.trim(), relevantContent);
-        
+
         console.log(`✅ Response generated successfully`);
-        
+
         res.json({
             response: aiResult.response,
             sources: aiResult.sources,
             conversationId: conversationId || Date.now().toString(),
             timestamp: new Date().toISOString()
         });
-        
+
     } catch (error) {
         console.error('Chat API error:', error);
-        
+
         let errorMessage = 'Internal server error. Please try again later.';
-        
+
         if (error.message.includes('Collection popg_content does not exist')) {
             errorMessage = 'The AI knowledge base has not been created yet. Please run "npm run train" to train the AI on POPG content first.';
         } else if (error.message.includes('quota') || error.message.includes('401')) {
@@ -343,8 +343,8 @@ app.post('/api/chat', async (req, res) => {
         } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ChromaNotFoundError')) {
             errorMessage = 'ChromaDB connection failed. Please ensure ChromaDB is running with "docker-compose up -d".';
         }
-        
-        res.status(500).json({ 
+
+        res.status(500).json({
             error: errorMessage,
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -358,17 +358,17 @@ app.get('/api/stats', async (req, res) => {
     try {
         const collection = await chroma.getCollection({ name: 'popg_content' });
         const count = await collection.count();
-        
+
         res.json({
             totalDocuments: count,
             collectionName: 'popg_content',
             website: 'POPG.com',
             status: 'ready'
         });
-        
+
     } catch (error) {
         console.error('Stats API error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Could not retrieve stats',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -385,7 +385,7 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((error, req, res, next) => {
     console.error('Unhandled error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
         error: 'Internal server error',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -404,7 +404,7 @@ app.listen(PORT, async () => {
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`💬 Chat API: http://localhost:${PORT}/api/chat`);
     console.log('═'.repeat(50));
-    
+
     // Check ChromaDB connection and knowledge base
     try {
         const collection = await chroma.getCollection({ name: 'popg_content' });
