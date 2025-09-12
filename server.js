@@ -37,7 +37,7 @@ const chroma = new ChromaClient({
 async function generateQueryEmbedding(query) {
     try {
         const response = await openai.embeddings.create({
-            model: "text-embedding-3-small",
+            model: "text-embedding-ada-002", // Faster, cheaper model - matches trainer
             input: query,
         });
         return response.data[0].embedding;

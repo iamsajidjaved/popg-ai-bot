@@ -13,14 +13,16 @@ dotenv.config();
  */
 const CONFIG = {
     maxDepth: 1,
-    maxPages: 10,
-    delay: 2000,
+    maxPages: 10, // Back to full processing with 16GB RAM
+    delay: 1000,
     timeout: 30000,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    chunkSize: 300, // Smaller chunks for memory efficiency
-    chunkOverlap: 50, // Smaller overlap
-    batchSize: 1, // Process one chunk at a time
-    maxContentSize: 100000 // Limit content size per page (100KB)
+    chunkSize: 1000, // Optimal chunk size for 16GB
+    chunkOverlap: 100,
+    batchSize: 5, // Can handle larger batches now
+    maxContentSize: 100000, // Back to full content (100KB per page)
+    embeddingBatchSize: 8, // Larger embedding batches for efficiency
+    maxRetries: 3
 };
 
 // Initialize OpenAI
@@ -92,17 +94,77 @@ function splitTextIntoChunks(text, chunkSize = CONFIG.chunkSize, overlap = CONFI
 }
 
 /**
- * Generates embeddings using OpenAI
+ * Generates embeddings using OpenAI (with batching for efficiency)
  */
-async function generateEmbedding(text) {
+async function generateEmbeddings(textArray) {
+    const startTime = Date.now();
+    console.log(`     🔄 [EMBEDDING] Starting generation for ${textArray.length} text(s)...`);
+    console.log(`     📝 [EMBEDDING] Text lengths: ${textArray.map(t => t.length).join(', ')} chars`);
+    
     try {
+        // For small batches, process individually to avoid API limits
+        if (textArray.length === 1) {
+            console.log(`     🚀 [EMBEDDING] Sending single text to OpenAI...`);
+            const response = await openai.embeddings.create({
+                model: "text-embedding-ada-002", // Faster, cheaper model
+                input: textArray[0],
+            });
+            const duration = Date.now() - startTime;
+            console.log(`     ✅ [EMBEDDING] Single embedding generated in ${duration}ms`);
+            return [response.data[0].embedding];
+        }
+        
+        // For larger batches, send all at once
+        console.log(`     🚀 [EMBEDDING] Sending batch of ${textArray.length} texts to OpenAI...`);
         const response = await openai.embeddings.create({
-            model: "text-embedding-3-small",
-            input: text,
+            model: "text-embedding-ada-002", // Faster, cheaper model
+            input: textArray,
         });
-        return response.data[0].embedding;
+        
+        const duration = Date.now() - startTime;
+        console.log(`     ✅ [EMBEDDING] Batch of ${textArray.length} embeddings generated in ${duration}ms`);
+        console.log(`     📊 [EMBEDDING] Average time per embedding: ${Math.round(duration / textArray.length)}ms`);
+        
+        return response.data.map(item => item.embedding);
+        
     } catch (error) {
-        console.error('Error generating embedding:', error.message);
+        const duration = Date.now() - startTime;
+        console.error(`     ❌ [EMBEDDING] Error after ${duration}ms:`, error.message);
+        console.error(`     🔍 [EMBEDDING] Error details:`, {
+            name: error.name,
+            status: error.status,
+            code: error.code,
+            type: error.type
+        });
+        
+        // Fallback: process one by one if batch fails
+        if (textArray.length > 1) {
+            console.log(`     🔄 [EMBEDDING] Fallback: Processing embeddings individually...`);
+            const embeddings = [];
+            for (let i = 0; i < textArray.length; i++) {
+                const text = textArray[i];
+                try {
+                    console.log(`     🔄 [EMBEDDING] Individual ${i + 1}/${textArray.length} (${text.length} chars)...`);
+                    const individualStart = Date.now();
+                    
+                    const response = await openai.embeddings.create({
+                        model: "text-embedding-ada-002",
+                        input: text,
+                    });
+                    
+                    const individualDuration = Date.now() - individualStart;
+                    console.log(`     ✅ [EMBEDDING] Individual ${i + 1}/${textArray.length} completed in ${individualDuration}ms`);
+                    
+                    embeddings.push(response.data[0].embedding);
+                    await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
+                } catch (individualError) {
+                    console.error(`     ❌ [EMBEDDING] Failed individual ${i + 1}/${textArray.length}:`, individualError.message);
+                    throw individualError;
+                }
+            }
+            return embeddings;
+        }
+        
         throw error;
     }
 }
@@ -276,49 +338,90 @@ async function storeInChromaDB(scrapedContent) {
 
         let totalChunks = 0;
         
-        // Process pages in batches to prevent memory issues
+        // Process pages with detailed logging for 16GB RAM
         for (let pageIndex = 0; pageIndex < scrapedContent.length; pageIndex++) {
             const page = scrapedContent[pageIndex];
-            console.log(`   🔄 Processing page ${pageIndex + 1}/${scrapedContent.length}: ${page.title}`);
+            const pageStartTime = Date.now();
+            
+            console.log(`\n   🔄 [PAGE ${pageIndex + 1}/${scrapedContent.length}] Starting: ${page.title}`);
+            console.log(`   📄 [PAGE ${pageIndex + 1}] URL: ${page.url}`);
+            console.log(`   📊 [PAGE ${pageIndex + 1}] Content length: ${page.content.length} characters`);
+            
+            // Show memory usage
+            const memUsage = process.memoryUsage();
+            console.log(`   💾 [MEMORY] Heap: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB used / ${Math.round(memUsage.heapTotal / 1024 / 1024)}MB total`);
+            console.log(`   💾 [MEMORY] RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB, External: ${Math.round(memUsage.external / 1024 / 1024)}MB`);
             
             // Split content into chunks
+            console.log(`   ✂️  [PAGE ${pageIndex + 1}] Splitting content into chunks...`);
+            const chunkStartTime = Date.now();
             const chunks = splitTextIntoChunks(page.content);
+            const chunkTime = Date.now() - chunkStartTime;
+            console.log(`   ✅ [PAGE ${pageIndex + 1}] Split into ${chunks.length} chunks in ${chunkTime}ms`);
             
-            // Process chunks in smaller batches
-            for (let i = 0; i < chunks.length; i += CONFIG.batchSize) {
-                const batchChunks = chunks.slice(i, i + CONFIG.batchSize);
-                const documents = [];
-                const embeddings = [];
-                const metadatas = [];
-                const ids = [];
+            if (chunks.length === 0) {
+                console.log(`   ⚠️  [PAGE ${pageIndex + 1}] No chunks to process, skipping...`);
+                continue;
+            }
+            
+            // Force garbage collection before processing chunks
+            if (global.gc) {
+                console.log(`   🧹 [PAGE ${pageIndex + 1}] Running garbage collection...`);
+                global.gc();
+                const newMemUsage = process.memoryUsage();
+                console.log(`   ✅ [PAGE ${pageIndex + 1}] GC completed. Heap now: ${Math.round(newMemUsage.heapUsed / 1024 / 1024)}MB`);
+            }
+            
+            // Process chunks with optimized batching for 16GB RAM
+            console.log(`     📝 [PROCESSING] Split into ${chunks.length} chunks`);
+            console.log(`     🔄 [PROCESSING] Will process in batches of ${CONFIG.embeddingBatchSize}`);
+            
+            for (let i = 0; i < chunks.length; i += CONFIG.embeddingBatchSize) {
+                const batchChunks = chunks.slice(i, i + CONFIG.embeddingBatchSize);
+                const batchNumber = Math.floor(i / CONFIG.embeddingBatchSize) + 1;
+                const totalBatches = Math.ceil(chunks.length / CONFIG.embeddingBatchSize);
                 
-                // Process this batch
-                for (let j = 0; j < batchChunks.length; j++) {
-                    const chunk = batchChunks[j];
-                    const chunkIndex = i + j;
-                    
-                    // Generate embedding
-                    const embedding = await generateEmbedding(chunk);
-                    
-                    // Prepare data
-                    documents.push(chunk);
-                    embeddings.push(embedding);
-                    metadatas.push({
-                        url: page.url,
-                        title: page.title,
-                        description: page.description,
-                        keywords: page.keywords,
-                        chunk_index: chunkIndex,
-                        total_chunks: chunks.length
-                    });
-                    ids.push(`${uuidv4()}`);
-                    
-                    // Small delay to avoid rate limiting and help with memory
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                }
+                console.log(`     ⚡ [BATCH ${batchNumber}/${totalBatches}] Processing ${batchChunks.length} chunks (chunks ${i + 1}-${i + batchChunks.length})`);
                 
-                // Store this batch in ChromaDB immediately
-                if (documents.length > 0) {
+                try {
+                    const batchStartTime = Date.now();
+                    
+                    // Generate embeddings for the batch
+                    console.log(`     🧠 [BATCH ${batchNumber}] Generating embeddings...`);
+                    const batchEmbeddings = await generateEmbeddings(batchChunks);
+                    
+                    const embeddingTime = Date.now() - batchStartTime;
+                    console.log(`     ✅ [BATCH ${batchNumber}] Embeddings generated in ${embeddingTime}ms`);
+                    
+                    // Prepare data for ChromaDB
+                    console.log(`     📦 [BATCH ${batchNumber}] Preparing data for storage...`);
+                    const documents = [];
+                    const embeddings = [];
+                    const metadatas = [];
+                    const ids = [];
+                    
+                    for (let j = 0; j < batchChunks.length; j++) {
+                        const chunk = batchChunks[j];
+                        const chunkIndex = i + j;
+                        
+                        documents.push(chunk);
+                        embeddings.push(batchEmbeddings[j]);
+                        metadatas.push({
+                            url: page.url,
+                            title: page.title,
+                            description: page.description,
+                            keywords: page.keywords,
+                            chunk_index: chunkIndex,
+                            total_chunks: chunks.length,
+                            page_index: pageIndex
+                        });
+                        ids.push(`page_${pageIndex}_chunk_${chunkIndex}_${Date.now()}_${j}`);
+                    }
+                    
+                    // Store batch in ChromaDB
+                    console.log(`     💾 [BATCH ${batchNumber}] Storing in ChromaDB...`);
+                    const storeStartTime = Date.now();
+                    
                     await collection.add({
                         documents: documents,
                         embeddings: embeddings,
@@ -326,21 +429,84 @@ async function storeInChromaDB(scrapedContent) {
                         ids: ids
                     });
                     
-                    totalChunks += documents.length;
-                    console.log(`     💾 Stored batch of ${documents.length} chunks (Total: ${totalChunks})`);
+                    const storeTime = Date.now() - storeStartTime;
+                    const totalBatchTime = Date.now() - batchStartTime;
                     
-                    // Clear arrays to free memory
+                    totalChunks += documents.length;
+                    console.log(`     ✅ [BATCH ${batchNumber}] Stored ${documents.length} chunks in ${storeTime}ms`);
+                    console.log(`     📊 [BATCH ${batchNumber}] Total batch time: ${totalBatchTime}ms (Embedding: ${embeddingTime}ms, Storage: ${storeTime}ms)`);
+                    console.log(`     📈 [PROGRESS] Total chunks stored: ${totalChunks}`);
+                    
+                    // Memory cleanup
                     documents.length = 0;
                     embeddings.length = 0;
                     metadatas.length = 0;
                     ids.length = 0;
                     
-                    // Force garbage collection if available
-                    if (global.gc) {
-                        global.gc();
+                    // Brief pause for system stability
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                } catch (batchError) {
+                    console.error(`     ❌ [BATCH ${batchNumber}] Failed:`, batchError.message);
+                    console.error(`     🔍 [BATCH ${batchNumber}] Error details:`, {
+                        name: batchError.name,
+                        status: batchError.status,
+                        code: batchError.code
+                    });
+                    
+                    console.log(`     🔄 [BATCH ${batchNumber}] Falling back to individual chunk processing...`);
+                    
+                    // Fallback: process chunks individually
+                    for (let k = 0; k < batchChunks.length; k++) {
+                        const chunkIndex = i + k;
+                        const chunk = batchChunks[k];
+                        
+                        try {
+                            console.log(`     🔄 [INDIVIDUAL] Processing chunk ${chunkIndex + 1}/${chunks.length} (${chunk.length} chars)`);
+                            const individualStart = Date.now();
+                            
+                            const singleEmbedding = await generateEmbeddings([chunk]);
+                            
+                            await collection.add({
+                                documents: [chunk],
+                                embeddings: singleEmbedding,
+                                metadatas: [{
+                                    url: page.url,
+                                    title: page.title,
+                                    description: page.description,
+                                    keywords: page.keywords,
+                                    chunk_index: chunkIndex,
+                                    total_chunks: chunks.length,
+                                    page_index: pageIndex
+                                }],
+                                ids: [`page_${pageIndex}_chunk_${chunkIndex}_${Date.now()}_individual`]
+                            });
+                            
+                            totalChunks++;
+                            const individualTime = Date.now() - individualStart;
+                            console.log(`     ✅ [INDIVIDUAL] Chunk ${chunkIndex + 1}/${chunks.length} stored in ${individualTime}ms (Total: ${totalChunks})`);
+                            
+                            await new Promise(resolve => setTimeout(resolve, 200));
+                            
+                        } catch (individualError) {
+                            console.error(`     ❌ [INDIVIDUAL] Failed chunk ${chunkIndex + 1}:`, individualError.message);
+                            // Continue with next chunk
+                        }
                     }
                 }
             }
+            
+            // Progress update for completed page
+            const pageEndTime = Date.now();
+            const pageDuration = pageEndTime - pageStartTime;
+            const progress = ((pageIndex + 1) / scrapedContent.length * 100).toFixed(1);
+            
+            console.log(`\n   ✅ [PAGE ${pageIndex + 1}/${scrapedContent.length}] COMPLETED in ${Math.round(pageDuration / 1000)}s`);
+            console.log(`   📊 [PAGE ${pageIndex + 1}] Processed ${chunks.length} chunks successfully`);
+            console.log(`   📈 [PROGRESS] Overall progress: ${progress}% (${pageIndex + 1}/${scrapedContent.length} pages)`);
+            console.log(`   ⏱️  [TIMING] Average time per chunk: ${Math.round(pageDuration / chunks.length)}ms`);
+            console.log(`   🎯 [TOTAL] Total chunks stored so far: ${totalChunks}`);
+            console.log(`   ${'='.repeat(60)}`);
         }
 
         console.log(`✅ Successfully stored ${totalChunks} document chunks!`);
