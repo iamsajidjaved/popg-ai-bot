@@ -78,6 +78,20 @@ function splitTextIntoChunks(text, chunkSize = CONFIG.chunkSize, overlap = CONFI
     const chunks = [];
     let start = 0;
     
+    // Validate inputs
+    if (!text || text.length === 0) {
+        console.warn('     ⚠️  Empty text provided to splitTextIntoChunks');
+        return [];
+    }
+    
+    if (chunkSize <= overlap) {
+        console.warn(`     ⚠️  Invalid chunk configuration: chunkSize (${chunkSize}) <= overlap (${overlap}). Using default values.`);
+        chunkSize = 1000;
+        overlap = 100;
+    }
+    
+    console.log(`     📏 [CHUNKING] Text length: ${text.length}, Chunk size: ${chunkSize}, Overlap: ${overlap}`);
+    
     while (start < text.length) {
         const end = Math.min(start + chunkSize, text.length);
         const chunk = text.slice(start, end);
@@ -86,10 +100,26 @@ function splitTextIntoChunks(text, chunkSize = CONFIG.chunkSize, overlap = CONFI
             chunks.push(chunk.trim());
         }
         
-        start = end - overlap;
+        // Move to next position, ensuring we always progress
+        const nextStart = end - overlap;
+        if (nextStart <= start) {
+            // If overlap is too large, just move by half chunk size to ensure progress
+            start = start + Math.floor(chunkSize / 2);
+        } else {
+            start = nextStart;
+        }
+        
+        // Safety check to prevent infinite loops
         if (start >= text.length) break;
+        
+        // Additional safety: if we have too many chunks, something is wrong
+        if (chunks.length > 10000) {
+            console.error(`     ❌ [CHUNKING] Too many chunks (${chunks.length}), breaking to prevent infinite loop`);
+            break;
+        }
     }
     
+    console.log(`     ✅ [CHUNKING] Created ${chunks.length} chunks from ${text.length} characters`);
     return chunks;
 }
 
@@ -564,6 +594,13 @@ async function trainAIBot() {
         // Step 0: Test ChromaDB connection
         console.log('\n🔧 STEP 0: Testing Database Connection...');
         await testChromaConnection();
+        
+        // Step 0.5: Test chunking function with sample text
+        console.log('\n🧪 STEP 0.5: Testing Chunking Function...');
+        const testText = "This is a test text. ".repeat(100); // 2000+ characters
+        console.log(`Testing with ${testText.length} character sample...`);
+        const testChunks = splitTextIntoChunks(testText);
+        console.log(`✅ Chunking test passed: ${testChunks.length} chunks created`);
         
         // Step 1: Crawl website
         console.log('\n🕷️  STEP 1: Crawling Website...');
