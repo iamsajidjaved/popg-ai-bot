@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import axios from 'axios';
 
 // Load environment variables
 dotenv.config();
@@ -32,93 +33,221 @@ const chroma = new ChromaClient({
 });
 
 /**
- * Generates embeddings for user queries
+ * Fetches current POPG price from API
+ */
+async function fetchPOPGPrice() {
+    try {
+        console.log('💰 Fetching POPG price...');
+        const response = await axios.get('https://price.popg.com/', {
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'POPG-AI-Bot/1.0'
+            }
+        });
+        
+        console.log('✅ POPG price fetched successfully');
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error fetching POPG price:', error.message);
+        return null;
+    }
+}
+
+/**
+ * Formats price data for display
+ */
+function formatPriceData(priceData) {
+    if (!priceData) {
+        return "⚠️ Unable to fetch current POPG price data.";
+    }
+    
+    const formatPrice = (price) => `$${parseFloat(price).toFixed(5)}`;
+    const formatTime = (timestamp) => {
+        try {
+            return new Date(timestamp).toLocaleString();
+        } catch {
+            return timestamp;
+        }
+    };
+    
+    return `## 💰 Current POPG Price
+
+**Average Price:** ${formatPrice(priceData.average)}
+
+### Price Sources:
+| Source | Price | Last Updated |
+|--------|-------|--------------|
+| CoinMarketCap | ${formatPrice(priceData.coinmarketcap?.price || 'N/A')} | ${formatTime(priceData.coinmarketcap?.timestamp || 'N/A')} |
+| CoinGecko | ${formatPrice(priceData.coingecko?.price || 'N/A')} | ${formatTime(priceData.coingecko?.timestamp || 'N/A')} |
+
+*Data sourced from price.popg.com*`;
+}
+
+/**
+ * Generates embeddings for user queries (optimized)
  */
 async function generateQueryEmbedding(query) {
     try {
+        // Cache key for potential future caching implementation
+        const startTime = Date.now();
+        
         const response = await openai.embeddings.create({
-            model: "text-embedding-ada-002", // Faster, cheaper model - matches trainer
-            input: query,
+            model: "text-embedding-ada-002", // Matches training model
+            input: query.trim(), // Clean input
+            encoding_format: "float", // More efficient
         });
+        
+        const duration = Date.now() - startTime;
+        console.log(`🔍 Query embedding generated in ${duration}ms`);
+        
         return response.data[0].embedding;
     } catch (error) {
-        console.error('Error generating query embedding:', error);
+        console.error('❌ Error generating query embedding:', error);
         throw error;
     }
 }
 
 /**
- * Searches for relevant content in ChromaDB
+ * Searches for relevant content in ChromaDB (optimized)
  */
-async function searchRelevantContent(query, topK = 5) {
+async function searchRelevantContent(query, topK = 8) { // Increased for better context
     try {
+        const searchStart = Date.now();
+        
         // Get the POPG content collection
         const collection = await chroma.getCollection({ name: 'popg_content' });
         
         // Generate embedding for the query
         const queryEmbedding = await generateQueryEmbedding(query);
         
-        // Search for similar content
+        // Search for similar content with optimized parameters
         const results = await collection.query({
             queryEmbeddings: [queryEmbedding],
             nResults: topK,
-            include: ['documents', 'metadatas', 'distances']
+            include: ['documents', 'metadatas', 'distances'],
+            // Add where clause for quality filtering if needed
         });
+        
+        const searchDuration = Date.now() - searchStart;
+        console.log(`🔍 Content search completed in ${searchDuration}ms (${results.documents[0].length} results)`);
+        
+        // Log relevance scores for debugging
+        if (results.distances && results.distances[0]) {
+            const avgDistance = results.distances[0].reduce((a, b) => a + b, 0) / results.distances[0].length;
+            console.log(`📊 Average relevance distance: ${avgDistance.toFixed(4)}`);
+        }
         
         return results;
         
     } catch (error) {
-        console.error('Error searching content:', error);
+        console.error('❌ Error searching content:', error);
         throw error;
     }
 }
 
 /**
- * Generates AI response using OpenAI with context
+ * Generates AI response using OpenAI with context (enhanced formatting)
  */
 async function generateAIResponse(userQuery, relevantContent) {
     try {
-        // Prepare context from relevant content
-        const contextText = relevantContent.documents[0]
+        const responseStart = Date.now();
+        
+        // Check if user is asking about POPG price
+        const isPriceQuery = /price|cost|value|worth|usd|dollar|\$|trading|market/i.test(userQuery) && 
+                            /popg/i.test(userQuery);
+        
+        let priceData = null;
+        let priceContext = '';
+        
+        if (isPriceQuery) {
+            priceData = await fetchPOPGPrice();
+            if (priceData) {
+                priceContext = `\n\nCurrent POPG Price Data:
+- Average Price: $${priceData.average}
+- CoinMarketCap: $${priceData.coinmarketcap?.price || 'N/A'} (Updated: ${priceData.coinmarketcap?.timestamp || 'N/A'})
+- CoinGecko: $${priceData.coingecko?.price || 'N/A'} (Updated: ${priceData.coingecko?.timestamp || 'N/A'})`;
+            }
+        }
+        
+        // Filter and optimize context - only use most relevant results
+        const topResults = relevantContent.documents[0].slice(0, 6); // Increased for better context
+        const topMetadata = relevantContent.metadatas[0].slice(0, 6);
+        
+        // Prepare optimized context
+        const contextText = topResults
             .map((doc, index) => {
-                const metadata = relevantContent.metadatas[0][index];
-                return `Source: ${metadata.title} (${metadata.url})\nContent: ${doc}\n`;
+                const metadata = topMetadata[index];
+                // Truncate very long documents to control token usage
+                const truncatedDoc = doc.length > 1000 ? doc.substring(0, 1000) + '...' : doc;
+                return `**Source:** ${metadata.title} (${metadata.url})\n**Content:** ${truncatedDoc}`;
             })
-            .join('\n---\n');
+            .join('\n\n---\n\n');
 
-        const systemPrompt = `You are a helpful AI assistant trained on content from POPG.com. Use the provided context to answer user questions accurately and helpfully about POPG services, features, and information.
+        // Calculate estimated tokens for cost tracking
+        const estimatedTokens = Math.ceil((contextText.length + userQuery.length + priceContext.length) * 1.3);
+        console.log(`📊 Estimated tokens: ${estimatedTokens} (~$${(estimatedTokens / 1000 * 0.00015).toFixed(6)})`);
+
+        const systemPrompt = `You are a helpful AI assistant for POPG.com. Use the provided context to answer questions accurately about POPG services, features, and information.
 
 Context from POPG.com:
-${contextText}
+${contextText}${priceContext}
 
 Instructions:
-- Answer based primarily on the provided context from POPG.com
-- If the context doesn't contain enough information, say so clearly
+- Format your response using Markdown for better readability
+- Use bullet points, numbered lists, tables, and headers when appropriate
+- If answering about POPG price, include the current price data prominently
+- Answer based primarily on the provided context
+- If context is insufficient, state this clearly
 - Be conversational and helpful
-- Include relevant source URLs when appropriate
-- Keep responses concise but informative
-- Focus on POPG-related topics and services`;
+- Include relevant source information when appropriate
+- Use **bold** for important points and *italics* for emphasis
+- Create tables for comparing features or data when relevant
+- Use ## for main headings and ### for subheadings
+- Always end with relevant source links if available`;
 
         const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-4o-mini", // Most cost-effective GPT-4 model
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userQuery }
             ],
             temperature: 0.7,
-            max_tokens: 500
+            max_tokens: 600, // Increased for better formatted responses
+            presence_penalty: 0.1,
+            frequency_penalty: 0.1,
         });
 
+        const responseDuration = Date.now() - responseStart;
+        const actualTokens = response.usage.total_tokens;
+        const cost = actualTokens / 1000 * 0.00015;
+        
+        console.log(`🤖 AI response generated in ${responseDuration}ms`);
+        console.log(`📊 Actual tokens used: ${actualTokens} ($${cost.toFixed(6)})`);
+
+        let formattedResponse = response.choices[0].message.content;
+        
+        // If this was a price query and we have price data, append formatted price info
+        if (isPriceQuery && priceData) {
+            formattedResponse += `\n\n${formatPriceData(priceData)}`;
+        }
+
         return {
-            response: response.choices[0].message.content,
-            sources: relevantContent.metadatas[0].map(meta => ({
+            response: formattedResponse,
+            sources: topMetadata.map(meta => ({
                 title: meta.title,
                 url: meta.url
-            }))
+            })),
+            priceData: priceData,
+            metadata: {
+                tokens: actualTokens,
+                cost: cost,
+                responseTime: responseDuration,
+                includedPrice: isPriceQuery
+            }
         };
-        
+
     } catch (error) {
-        console.error('Error generating AI response:', error);
+        console.error('❌ Error generating AI response:', error);
         throw error;
     }
 }
