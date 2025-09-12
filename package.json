@@ -1,27 +1,55 @@
 {
-  "name": "popg-ai-bot",
+  "name": "popg-ai-chatbot",
   "version": "1.0.0",
-  "description": "AI chatbot trained on POPG.com content using OpenAI and ChromaDB",
+  "description": "AI chatbot trained on POPG.com content using OpenAI embeddings and ChromaDB for semantic search",
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "train": "node trainer.js",
     "dev": "node --watch server.js",
     "setup": "npm install && echo 'POPG AI Bot setup complete!'",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "clean": "rm -rf node_modules package-lock.json && npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["ai", "chatbot", "openai", "chromadb", "popg"],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "ai",
+    "chatbot",
+    "openai",
+    "chromadb",
+    "popg",
+    "web3",
+    "gaming",
+    "vector-search",
+    "embeddings",
+    "semantic-search",
+    "nodejs",
+    "express"
+  ],
+  "author": "POPG AI Bot Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/popg-ai-chatbot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/popg-ai-chatbot/issues"
+  },
+  "homepage": "https://github.com/your-username/popg-ai-chatbot#readme",
   "dependencies": {
     "axios": "^1.11.0",
     "cheerio": "^1.1.2",
+    "chromadb": "^1.7.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "openai": "^4.20.1",
-    "chromadb": "^1.7.3",
-    "dotenv": "^16.3.1",
-    "cors": "^2.8.5",
     "uuid": "^9.0.1"
-  }
+  },
+  "devDependencies": {}
 }
