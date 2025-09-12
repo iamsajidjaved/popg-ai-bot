@@ -248,16 +248,30 @@ async function storeInChromaDB(scrapedContent) {
     try {
         console.log('\n📊 Processing content for ChromaDB...');
         
-        // Create or get collection
+        // Create or get collection with simpler approach
         const collectionName = 'popg_content';
         let collection;
         
         try {
-            collection = await chroma.getCollection({ name: collectionName });
-            console.log(`📚 Using existing collection: ${collectionName}`);
-        } catch (error) {
-            collection = await chroma.createCollection({ name: collectionName });
+            // First, try to delete existing collection to start fresh
+            try {
+                await chroma.deleteCollection({ name: collectionName });
+                console.log(`�️  Deleted existing collection: ${collectionName}`);
+            } catch (deleteError) {
+                // Collection doesn't exist, which is fine
+                console.log(`📚 Collection ${collectionName} doesn't exist yet`);
+            }
+            
+            // Create new collection
+            collection = await chroma.createCollection({ 
+                name: collectionName,
+                metadata: { description: "POPG website content for AI chatbot" }
+            });
             console.log(`📚 Created new collection: ${collectionName}`);
+            
+        } catch (error) {
+            console.error('Error with collection management:', error.message);
+            throw new Error(`Failed to setup ChromaDB collection: ${error.message}`);
         }
 
         let totalChunks = 0;
@@ -344,6 +358,29 @@ async function storeInChromaDB(scrapedContent) {
 }
 
 /**
+ * Tests ChromaDB connection
+ */
+async function testChromaConnection() {
+    try {
+        console.log('🔗 Testing ChromaDB connection...');
+        
+        // Test basic connection
+        const heartbeat = await chroma.heartbeat();
+        console.log(`✅ ChromaDB heartbeat: ${heartbeat}`);
+        
+        // List collections to verify API access
+        const collections = await chroma.listCollections();
+        console.log(`✅ ChromaDB API accessible (${collections.length} existing collections)`);
+        
+        return true;
+    } catch (error) {
+        console.error('❌ ChromaDB connection failed:', error.message);
+        console.error('💡 Make sure ChromaDB is running with: docker-compose up -d');
+        throw new Error(`ChromaDB connection failed: ${error.message}`);
+    }
+}
+
+/**
  * Main training function
  */
 async function trainAIBot() {
@@ -357,6 +394,10 @@ async function trainAIBot() {
         console.log(`⚙️  Max Pages: ${CONFIG.maxPages}`);
         console.log(`⚙️  Max Depth: ${CONFIG.maxDepth}`);
         console.log('=' .repeat(50));
+        
+        // Step 0: Test ChromaDB connection
+        console.log('\n🔧 STEP 0: Testing Database Connection...');
+        await testChromaConnection();
         
         // Step 1: Crawl website
         console.log('\n🕷️  STEP 1: Crawling Website...');
