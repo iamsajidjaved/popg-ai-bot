@@ -154,7 +154,14 @@ function addMessage(text, sender, sources = []) {
     
     const messageText = document.createElement('div');
     messageText.className = 'message-text';
-    messageText.textContent = text;
+    
+    // Render markdown for bot messages, plain text for user messages
+    if (sender === 'bot') {
+        messageText.className += ' markdown-content';
+        messageText.innerHTML = marked.parse(text);
+    } else {
+        messageText.textContent = text;
+    }
     
     const messageTime = document.createElement('div');
     messageTime.className = 'message-time';

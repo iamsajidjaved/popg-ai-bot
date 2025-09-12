@@ -152,20 +152,26 @@ async function generateAIResponse(userQuery, relevantContent) {
     try {
         const responseStart = Date.now();
         
-        // Check if user is asking about POPG price
-        const isPriceQuery = /price|cost|value|worth|usd|dollar|\$|trading|market/i.test(userQuery) && 
-                            /popg/i.test(userQuery);
+        // Check if user is asking about POPG price (more flexible detection)
+        const isPriceQuery = (/price|cost|value|worth|usd|dollar|\$|trading|market|current/i.test(userQuery) && 
+                            /popg/i.test(userQuery)) ||
+                            /popg.*price/i.test(userQuery) ||
+                            /price.*popg/i.test(userQuery);
         
         let priceData = null;
         let priceContext = '';
         
         if (isPriceQuery) {
+            console.log('💰 Price query detected, fetching POPG price...');
             priceData = await fetchPOPGPrice();
             if (priceData) {
+                console.log('✅ Price data retrieved:', priceData);
                 priceContext = `\n\nCurrent POPG Price Data:
 - Average Price: $${priceData.average}
 - CoinMarketCap: $${priceData.coinmarketcap?.price || 'N/A'} (Updated: ${priceData.coinmarketcap?.timestamp || 'N/A'})
 - CoinGecko: $${priceData.coingecko?.price || 'N/A'} (Updated: ${priceData.coingecko?.timestamp || 'N/A'})`;
+            } else {
+                console.log('❌ Failed to retrieve price data');
             }
         }
         
@@ -203,6 +209,13 @@ CRITICAL FORMATTING INSTRUCTIONS:
 - Always include relevant source links at the bottom when available
 - Use blockquotes (>) for important announcements or highlights
 - Present information in a scannable, well-organized format
+
+PRICE QUERY HANDLING:
+- If the user asks about POPG price and price data is provided in the context, use it prominently
+- Format price information in clear, readable tables
+- Include all available price sources (CoinMarketCap, CoinGecko)
+- Show timestamps for price updates
+- If no price data is available, clearly state this limitation
 
 CONTENT GUIDELINES:
 - Answer based primarily on the provided context from POPG.com and POP.VIP
