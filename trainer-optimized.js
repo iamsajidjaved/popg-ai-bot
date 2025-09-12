@@ -31,7 +31,7 @@ const CONFIG = {
     enablePdfProcessing: true,
     maxPdfSize: 10 * 1024 * 1024, // 10MB max PDF size
     // Multi-domain settings
-    allowedDomains: ['popg.com', 'pop.vip'], // Domains to crawl
+    allowedDomains: ['popg.com', 'pop.vip', 'docs.google.com'], // Domains to crawl
     crossDomainCrawling: true
 };
 
@@ -686,7 +686,9 @@ async function trainAIBot() {
         // Define multiple starting URLs for comprehensive coverage
         const startingUrls = [
             'https://popg.com',
-            'https://pop.vip'
+            'https://pop.vip',
+            'https://popg.com/assets/documents/litepapers/popg-litepaper-v1.8.pdf',
+            'https://docs.google.com/spreadsheets/d/12HQRVGa1d7O-zs7AH5PDhvnEaJO9jNIhJh9i7LHBa9k/htmlview#gid=0'
         ];
         
         console.log('🤖 POPG AI Bot Comprehensive Training Process Started');
