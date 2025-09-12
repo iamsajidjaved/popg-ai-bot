@@ -227,7 +227,7 @@ class POPGChatbot {
         this.showTypingIndicator();
         
         try {
-            const response = await fetch('/chat', {
+            const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -482,16 +482,3 @@ setInterval(() => {
         window.popgChatbot.saveChatHistory();
     }
 }, 30000); // Save every 30 seconds
-
-// Service Worker for offline support (optional)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
-            });
-    });
-}
