@@ -10,7 +10,6 @@
   "scripts": {
     "start": "node server.js",
     "train": "node --max-old-space-size=8192 --expose-gc trainer-optimized.js",
-    "train-original": "node --max-old-space-size=8192 --expose-gc trainer.js",
     "train-debug": "node --max-old-space-size=8192 --expose-gc --inspect trainer-optimized.js",
     "dev": "node --watch server.js",
     "setup": "npm install && echo 'POPG AI Bot setup complete!'",

@@ -187,23 +187,38 @@ async function generateAIResponse(userQuery, relevantContent) {
         const estimatedTokens = Math.ceil((contextText.length + userQuery.length + priceContext.length) * 1.3);
         console.log(`📊 Estimated tokens: ${estimatedTokens} (~$${(estimatedTokens / 1000 * 0.00015).toFixed(6)})`);
 
-        const systemPrompt = `You are a helpful AI assistant for POPG.com. Use the provided context to answer questions accurately about POPG services, features, and information.
+        const systemPrompt = `You are a helpful AI assistant for POPG.com and POP.VIP domains. Use the provided context to answer questions accurately about POPG services, features, and information.
 
-Context from POPG.com:
+Context from POPG domains:
 ${contextText}${priceContext}
 
-Instructions:
-- Format your response using Markdown for better readability
-- Use bullet points, numbered lists, tables, and headers when appropriate
-- If answering about POPG price, include the current price data prominently
-- Answer based primarily on the provided context
-- If context is insufficient, state this clearly
-- Be conversational and helpful
-- Include relevant source information when appropriate
-- Use **bold** for important points and *italics* for emphasis
-- Create tables for comparing features or data when relevant
-- Use ## for main headings and ### for subheadings
-- Always end with relevant source links if available`;
+CRITICAL FORMATTING INSTRUCTIONS:
+- ALWAYS format your response using rich Markdown for maximum readability
+- Structure information using headers (## for main topics, ### for subtopics)
+- Use bullet points (•) for lists and numbered lists (1.) for sequences
+- Create tables whenever comparing data, features, or presenting structured information
+- Use **bold** for important points, *italics* for emphasis, and \`code\` for technical terms
+- If answering about POPG price, present it in a formatted table with clear headers
+- For complex topics, break information into clearly organized sections
+- Always include relevant source links at the bottom when available
+- Use blockquotes (>) for important announcements or highlights
+- Present information in a scannable, well-organized format
+
+CONTENT GUIDELINES:
+- Answer based primarily on the provided context from POPG.com and POP.VIP
+- If context is insufficient, clearly state this limitation
+- Be conversational, helpful, and professional
+- Include specific details and examples when available
+- For price queries, prominently display current pricing data
+- Provide actionable information when possible
+
+RESPONSE STRUCTURE:
+1. Direct answer to the question (with appropriate header)
+2. Supporting details in organized lists or tables
+3. Additional relevant information if applicable
+4. Source references at the end
+
+Remember: Your goal is to provide comprehensive, well-formatted responses that are easy to read and understand.`;
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini", // Most cost-effective GPT-4 model
@@ -212,7 +227,7 @@ Instructions:
                 { role: "user", content: userQuery }
             ],
             temperature: 0.7,
-            max_tokens: 600, // Increased for better formatted responses
+            max_tokens: 800, // Increased for comprehensive formatted responses
             presence_penalty: 0.1,
             frequency_penalty: 0.1,
         });
