@@ -15,7 +15,6 @@ class POPGChatWidget {
         };
         
         this.isOpen = false;
-        this.isMinimized = false;
         this.isLoading = false;
         this.messageHistory = [];
         this.hasNewMessage = false;
@@ -42,7 +41,6 @@ class POPGChatWidget {
         this.widget = document.getElementById('popgChatWidget');
         this.toggleBtn = document.getElementById('chatToggle');
         this.chatWindow = document.getElementById('chatWindow');
-        this.minimizeBtn = document.getElementById('minimizeBtn');
         this.closeBtn = document.getElementById('closeBtn');
         this.welcomeSection = document.getElementById('welcomeSection');
         this.chatMessages = document.getElementById('chatMessages');
@@ -59,7 +57,6 @@ class POPGChatWidget {
         this.toggleBtn?.addEventListener('click', () => this.toggleChat());
         
         // Window controls
-        this.minimizeBtn?.addEventListener('click', () => this.minimizeChat());
         this.closeBtn?.addEventListener('click', () => this.closeChat());
         
         // Form submission
@@ -87,7 +84,7 @@ class POPGChatWidget {
         
         // Click outside to close (optional)
         document.addEventListener('click', (e) => {
-            if (!this.widget?.contains(e.target) && this.isOpen && !this.isMinimized) {
+            if (!this.widget?.contains(e.target) && this.isOpen) {
                 // Optionally close on outside click
                 // this.closeChat();
             }
@@ -135,9 +132,7 @@ class POPGChatWidget {
         if (!this.chatWindow) return;
         
         this.isOpen = true;
-        this.isMinimized = false;
         this.chatWindow.classList.add('open');
-        this.chatWindow.classList.remove('minimized');
         this.toggleBtn?.classList.add('active');
         
         // Hide notification
@@ -156,16 +151,8 @@ class POPGChatWidget {
         if (!this.chatWindow) return;
         
         this.isOpen = false;
-        this.isMinimized = false;
-        this.chatWindow.classList.remove('open', 'minimized');
+        this.chatWindow.classList.remove('open');
         this.toggleBtn?.classList.remove('active');
-    }
-    
-    minimizeChat() {
-        if (!this.chatWindow) return;
-        
-        this.isMinimized = true;
-        this.chatWindow.classList.add('minimized');
     }
     
     showNotification() {
