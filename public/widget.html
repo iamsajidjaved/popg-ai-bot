@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POPG AI Chat Widget</title>
+    <link rel="stylesheet" href="widget.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- POPG AI Chat Widget -->
+    <div class="popg-chat-widget" id="popgChatWidget">
+        <!-- Chat Toggle Button -->
+        <div class="chat-toggle" id="chatToggle">
+            <div class="toggle-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="toggle-notification" id="toggleNotification">
+                <span>1</span>
+            </div>
+        </div>
+
+        <!-- Chat Window -->
+        <div class="chat-window" id="chatWindow">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="header-info">
+                    <div class="bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bot-details">
+                        <h3>POPG AI Assistant</h3>
+                        <p class="status-text">
+                            <span class="status-dot"></span>
+                            Online
+                        </p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="action-btn minimize-btn" id="minimizeBtn" title="Minimize">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="action-btn close-btn" id="closeBtn" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Content -->
+            <div class="chat-content">
+                <!-- Welcome Message -->
+                <div class="welcome-section" id="welcomeSection">
+                    <div class="welcome-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="welcome-text">
+                        <h4>👋 Hi! I'm POPG AI</h4>
+                        <p>I can help you with information about POPG services, features, pricing, and more!</p>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-btn" data-message="What is POPG?">
+                            <i class="fas fa-info-circle"></i>
+                            What is POPG?
+                        </button>
+                        <button class="quick-btn" data-message="What's the current POPG price?">
+                            <i class="fas fa-dollar-sign"></i>
+                            Current Price
+                        </button>
+                        <button class="quick-btn" data-message="Tell me about POPG features">
+                            <i class="fas fa-star"></i>
+                            Features
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be added here dynamically -->
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <div class="typing-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input">
+                <form class="input-form" id="inputForm">
+                    <div class="input-container">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="Ask me about POPG..."
+                            maxlength="500"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="send-btn" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="input-footer">
+                    <span class="powered-by">
+                        Powered by <strong>POPG AI</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Toast -->
+        <div class="error-toast" id="errorToast">
+            <div class="error-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="error-message" id="errorMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="widget.js"></script>
+</body>
+</html>

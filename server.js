@@ -382,6 +382,204 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+/**
+ * Serve the chat widget demo page
+ */
+app.get('/demo', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'web.html'));
+});
+
+/**
+ * Serve the widget files for embedding
+ */
+app.get('/widget', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'widget.html'));
+});
+
+app.get('/widget.css', (req, res) => {
+    res.setHeader('Content-Type', 'text/css');
+    res.sendFile(path.join(__dirname, 'public', 'widget.css'));
+});
+
+app.get('/widget.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, 'public', 'widget.js'));
+});
+
+/**
+ * Widget embed script - generates embeddable code
+ */
+app.get('/embed', (req, res) => {
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const baseUrl = `${protocol}://${host}`;
+    
+    const embedCode = `
+(function() {
+    // Load widget CSS
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '${baseUrl}/widget.css';
+    document.head.appendChild(css);
+    
+    // Load marked.js for markdown parsing
+    var marked = document.createElement('script');
+    marked.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    document.head.appendChild(marked);
+    
+    // Load FontAwesome
+    var fa = document.createElement('link');
+    fa.rel = 'stylesheet';
+    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+    document.head.appendChild(fa);
+    
+    // Load Inter font
+    var font = document.createElement('link');
+    font.rel = 'stylesheet';
+    font.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+    document.head.appendChild(font);
+    
+    // Create widget HTML
+    var widgetHtml = \`
+        <div class="popg-chat-widget" id="popgChatWidget" 
+             data-api-url="${baseUrl}/api/chat"
+             data-position="bottom-right"
+             data-theme="light"
+             data-auto-open="false"
+             data-show-notification="true">
+            
+            <div class="chat-toggle" id="chatToggle">
+                <div class="toggle-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="toggle-notification" id="toggleNotification">
+                    <span>1</span>
+                </div>
+            </div>
+
+            <div class="chat-window" id="chatWindow">
+                <div class="chat-header">
+                    <div class="header-info">
+                        <div class="bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bot-details">
+                            <h3>POPG AI Assistant</h3>
+                            <p class="status-text">
+                                <span class="status-dot"></span>
+                                Online
+                            </p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn minimize-btn" id="minimizeBtn" title="Minimize">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="action-btn close-btn" id="closeBtn" title="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-content">
+                    <div class="welcome-section" id="welcomeSection">
+                        <div class="welcome-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="welcome-text">
+                            <h4>👋 Hi! I'm POPG AI</h4>
+                            <p>I can help you with information about POPG services, features, pricing, and more!</p>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-btn" data-message="What is POPG?">
+                                <i class="fas fa-info-circle"></i>
+                                What is POPG?
+                            </button>
+                            <button class="quick-btn" data-message="What's the current POPG price?">
+                                <i class="fas fa-dollar-sign"></i>
+                                Current Price
+                            </button>
+                            <button class="quick-btn" data-message="Tell me about POPG features">
+                                <i class="fas fa-star"></i>
+                                Features
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages"></div>
+
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <div class="typing-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input">
+                    <form class="input-form" id="inputForm">
+                        <div class="input-container">
+                            <input 
+                                type="text" 
+                                id="messageInput" 
+                                placeholder="Ask me about POPG..."
+                                maxlength="500"
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="send-btn" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="input-footer">
+                        <span class="powered-by">
+                            Powered by <strong>POPG AI</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-toast" id="errorToast">
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="error-message" id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+    \`;
+    
+    // Wait for dependencies to load, then create widget
+    function initWidget() {
+        if (typeof marked === 'undefined') {
+            setTimeout(initWidget, 100);
+            return;
+        }
+        
+        // Add widget HTML to body
+        document.body.insertAdjacentHTML('beforeend', widgetHtml);
+        
+        // Load widget script
+        var script = document.createElement('script');
+        script.src = '${baseUrl}/widget.js';
+        document.head.appendChild(script);
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initWidget);
+    } else {
+        initWidget();
+    }
+})();`;
+
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send(embedCode);
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
     console.error('Unhandled error:', error);
