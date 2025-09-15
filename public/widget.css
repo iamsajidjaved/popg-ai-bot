@@ -237,24 +237,24 @@
 /* Welcome Section */
 .welcome-section {
     text-align: center;
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-4) var(--space-3);
 }
 
 .welcome-avatar {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background: linear-gradient(135deg, var(--popg-primary) 0%, var(--popg-secondary) 100%);
     border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto var(--space-4);
+    margin: 0 auto var(--space-3);
     color: var(--text-white);
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .welcome-text h4 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: var(--space-2);
@@ -262,29 +262,33 @@
 
 .welcome-text p {
     color: var(--text-secondary);
-    margin-bottom: var(--space-6);
-    line-height: 1.6;
+    margin-bottom: var(--space-4);
+    line-height: 1.5;
+    font-size: 13px;
 }
 
 .quick-actions {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: var(--space-2);
+    max-height: 280px;
+    overflow-y: auto;
 }
 
 .quick-btn {
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-3);
     background: var(--bot-bg);
     border: 1px solid var(--widget-border);
     border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     transition: all var(--transition-fast);
     display: flex;
     align-items: center;
     gap: var(--space-2);
     text-align: left;
+    min-height: 40px;
 }
 
 .quick-btn:hover {
@@ -374,13 +378,19 @@
     text-align: left;
 }
 
-/* Markdown Content */
+/* Markdown Content - Simplified for widget */
 .message-bubble h1,
 .message-bubble h2,
 .message-bubble h3 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
+    margin: var(--space-2) 0 var(--space-1) 0;
+    line-height: 1.3;
+}
+
+.message-bubble p {
     margin: var(--space-2) 0;
+    line-height: 1.5;
 }
 
 .message-bubble ul,
@@ -391,10 +401,15 @@
 
 .message-bubble li {
     margin: var(--space-1) 0;
+    line-height: 1.4;
 }
 
 .message-bubble strong {
     font-weight: 600;
+}
+
+.message-bubble em {
+    font-style: italic;
 }
 
 .message-bubble code {
@@ -403,6 +418,43 @@
     border-radius: 3px;
     font-family: 'SF Mono', Monaco, monospace;
     font-size: 12px;
+}
+
+.message-bubble pre {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    margin: var(--space-2) 0;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+.message-bubble pre code {
+    background: none;
+    padding: 0;
+}
+
+.message-bubble a {
+    color: var(--popg-primary);
+    text-decoration: none;
+}
+
+.message-bubble a:hover {
+    text-decoration: underline;
+}
+
+/* Hide tables and complex formatting that don't work well in widget */
+.message-bubble table,
+.message-bubble th,
+.message-bubble td {
+    display: none;
+}
+
+/* Ensure text wraps properly */
+.message-bubble {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .message-bubble a {
@@ -591,18 +643,149 @@
     }
     
     .chat-window {
-        width: 100%;
+        width: calc(100vw - 32px);
         height: 70vh;
-        max-height: 600px;
+        max-height: 500px;
         bottom: 80px;
         right: 0;
         left: 0;
+        margin: 0 var(--space-4);
     }
     
     .chat-toggle {
         position: fixed;
         bottom: var(--space-4);
         right: var(--space-4);
+    }
+    
+    .chat-header {
+        padding: var(--space-3);
+    }
+    
+    .bot-details h3 {
+        font-size: 14px;
+    }
+    
+    .status-text {
+        font-size: 11px;
+    }
+    
+    .chat-content {
+        padding: var(--space-3);
+    }
+    
+    .welcome-section {
+        padding: var(--space-4) var(--space-2);
+    }
+    
+    .welcome-text h4 {
+        font-size: 16px;
+    }
+    
+    .welcome-text p {
+        font-size: 13px;
+    }
+    
+    .quick-btn {
+        padding: var(--space-2) var(--space-3);
+        font-size: 13px;
+    }
+    
+    .message-bubble {
+        padding: var(--space-2) var(--space-3);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    
+    .chat-input {
+        padding: var(--space-3);
+    }
+    
+    #messageInput {
+        padding: var(--space-2) var(--space-3);
+        font-size: 13px;
+    }
+    
+    .send-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Tablet responsive */
+@media (max-width: 768px) and (min-width: 481px) {
+    .chat-window {
+        width: 350px;
+        height: 550px;
+    }
+    
+    .popg-chat-widget {
+        bottom: var(--space-5);
+        right: var(--space-5);
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    .chat-window {
+        width: calc(100vw - 16px);
+        height: 65vh;
+        max-height: 450px;
+        margin: 0 var(--space-2);
+    }
+    
+    .chat-header {
+        padding: var(--space-2);
+    }
+    
+    .bot-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .bot-details h3 {
+        font-size: 13px;
+    }
+    
+    .welcome-text h4 {
+        font-size: 14px;
+    }
+    
+    .quick-btn {
+        padding: var(--space-2);
+        font-size: 12px;
+    }
+    
+    .message-bubble {
+        font-size: 12px;
+        padding: var(--space-2);
+    }
+    
+    #messageInput {
+        font-size: 12px;
+    }
+    
+    .send-btn {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* Landscape mobile orientation */
+@media (max-height: 500px) and (orientation: landscape) {
+    .chat-window {
+        height: 85vh;
+        max-height: 400px;
+    }
+    
+    .welcome-section {
+        padding: var(--space-2);
+    }
+    
+    .welcome-text p {
+        font-size: 12px;
+        margin-bottom: var(--space-3);
     }
 }
 

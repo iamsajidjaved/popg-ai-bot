@@ -58,29 +58,18 @@ async function fetchPOPGPrice() {
  */
 function formatPriceData(priceData) {
     if (!priceData) {
-        return "⚠️ Unable to fetch current POPG price data.";
+        return "I apologize, but I cannot retrieve the current POPG price at this moment. Please try again later.";
     }
 
     const formatPrice = (price) => `$${parseFloat(price).toFixed(5)}`;
-    const formatTime = (timestamp) => {
-        try {
-            return new Date(timestamp).toLocaleString();
-        } catch {
-            return timestamp;
-        }
-    };
+    
+    return `The current POPG price is ${formatPrice(priceData.average)}.
 
-    return `## 💰 Current POPG Price
+Price information from different sources:
+• CoinMarketCap: ${formatPrice(priceData.coinmarketcap?.price || 'N/A')}
+• CoinGecko: ${formatPrice(priceData.coingecko?.price || 'N/A')}
 
-**Average Price:** ${formatPrice(priceData.average)}
-
-### Price Sources:
-| Source | Price | Last Updated |
-|--------|-------|--------------|
-| CoinMarketCap | ${formatPrice(priceData.coinmarketcap?.price || 'N/A')} | ${formatTime(priceData.coinmarketcap?.timestamp || 'N/A')} |
-| CoinGecko | ${formatPrice(priceData.coingecko?.price || 'N/A')} | ${formatTime(priceData.coingecko?.timestamp || 'N/A')} |
-
-*Data sourced from price.popg.com*`;
+This data is sourced from price.popg.com and is updated regularly.`;
 }
 
 /**
@@ -198,40 +187,37 @@ async function generateAIResponse(userQuery, relevantContent) {
 Context from POPG domains:
 ${contextText}${priceContext}
 
-CRITICAL FORMATTING INSTRUCTIONS:
-- ALWAYS format your response using rich Markdown for maximum readability
-- Structure information using headers (## for main topics, ### for subtopics)
-- Use bullet points (•) for lists and numbered lists (1.) for sequences
-- Create tables whenever comparing data, features, or presenting structured information
-- Use **bold** for important points, *italics* for emphasis, and \`code\` for technical terms
-- If answering about POPG price, present it in a formatted table with clear headers
-- For complex topics, break information into clearly organized sections
-- Always include relevant source links at the bottom when available
-- Use blockquotes (>) for important announcements or highlights
-- Present information in a scannable, well-organized format
+RESPONSE FORMATTING GUIDELINES:
+- Use simple, clear, and formal language
+- Keep responses concise and professional
+- Avoid complex markdown formatting (no tables, complex headers)
+- Use simple bullet points (•) for lists when needed
+- Use basic formatting: **bold** for emphasis, simple paragraphs
+- Present information in a straightforward, easy-to-read format
+- Avoid emojis and excessive styling
+- Focus on clear, direct answers
 
 PRICE QUERY HANDLING:
-- If the user asks about POPG price and price data is provided in the context, use it prominently
-- Format price information in clear, readable tables
-- Include all available price sources (CoinMarketCap, CoinGecko)
-- Show timestamps for price updates
+- If the user asks about POPG price, provide clear pricing information
+- Present price data in simple text format, not tables
+- Include relevant price sources in a simple list format
 - If no price data is available, clearly state this limitation
 
 CONTENT GUIDELINES:
 - Answer based primarily on the provided context from POPG.com and POP.VIP
 - If context is insufficient, clearly state this limitation
-- Be conversational, helpful, and professional
-- Include specific details and examples when available
-- For price queries, prominently display current pricing data
+- Be conversational yet professional
+- Include specific details when available
 - Provide actionable information when possible
+- Keep responses concise and to the point
 
 RESPONSE STRUCTURE:
-1. Direct answer to the question (with appropriate header)
-2. Supporting details in organized lists or tables
+1. Direct answer to the question
+2. Supporting details in simple format
 3. Additional relevant information if applicable
-4. Source references at the end
+4. Brief mention of sources when relevant
 
-Remember: Your goal is to provide comprehensive, well-formatted responses that are easy to read and understand.`;
+Remember: Your responses will be displayed in a compact chat widget, so keep formatting simple and text readable.`;
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini", // Most cost-effective GPT-4 model
@@ -376,10 +362,10 @@ app.get('/api/stats', async (req, res) => {
 });
 
 /**
- * Serve the chat interface
+ * Serve the widget demo page as main page
  */
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'web.html'));
 });
 
 /**
@@ -495,13 +481,41 @@ app.get('/embed', (req, res) => {
                                 <i class="fas fa-info-circle"></i>
                                 What is POPG?
                             </button>
-                            <button class="quick-btn" data-message="What's the current POPG price?">
-                                <i class="fas fa-dollar-sign"></i>
-                                Current Price
-                            </button>
-                            <button class="quick-btn" data-message="Tell me about POPG features">
+                            <button class="quick-btn" data-message="Why choose POPG over others?">
                                 <i class="fas fa-star"></i>
-                                Features
+                                Why choose POPG over others?
+                            </button>
+                            <button class="quick-btn" data-message="How do fans benefit from POPG?">
+                                <i class="fas fa-gift"></i>
+                                How do fans benefit from POPG?
+                            </button>
+                            <button class="quick-btn" data-message="Can POPG unlock exclusive perks?">
+                                <i class="fas fa-unlock"></i>
+                                Can POPG unlock exclusive perks?
+                            </button>
+                            <button class="quick-btn" data-message="Does POPG reward loyalty?">
+                                <i class="fas fa-heart"></i>
+                                Does POPG reward loyalty?
+                            </button>
+                            <button class="quick-btn" data-message="How does POPG connect with iGaming?">
+                                <i class="fas fa-gamepad"></i>
+                                How does POPG connect with iGaming?
+                            </button>
+                            <button class="quick-btn" data-message="Is POPG safe and legal?">
+                                <i class="fas fa-shield-alt"></i>
+                                Is POPG safe and legal?
+                            </button>
+                            <button class="quick-btn" data-message="Who supports POPG?">
+                                <i class="fas fa-users"></i>
+                                Who supports POPG?
+                            </button>
+                            <button class="quick-btn" data-message="Where can I see POPG's live price?">
+                                <i class="fas fa-chart-line"></i>
+                                Where can I see POPG's live price?
+                            </button>
+                            <button class="quick-btn" data-message="How can the community join POPG?">
+                                <i class="fas fa-user-plus"></i>
+                                How can the community join POPG?
                             </button>
                         </div>
                     </div>
@@ -596,11 +610,12 @@ app.use('*', (req, res) => {
 
 // Start server
 app.listen(PORT, async () => {
-    console.log('\n🤖 POPG AI Chatbot Server Started!');
+    console.log('\n🤖 POPG AI Chat Widget Server Started!');
     console.log('═'.repeat(50));
-    console.log(`🌐 Server running at: http://localhost:${PORT}`);
+    console.log(`🌐 Widget Demo: http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`💬 Chat API: http://localhost:${PORT}/api/chat`);
+    console.log(`🔗 Widget embed: http://localhost:${PORT}/embed`);
     console.log('═'.repeat(50));
 
     // Check ChromaDB connection and knowledge base
@@ -609,9 +624,9 @@ app.listen(PORT, async () => {
         const stats = await collection.count();
         console.log(`🔗 ChromaDB connection: ✅ Connected`);
         console.log(`📚 Knowledge base: ${stats} documents ready`);
-        console.log(`⚙️  Mode: AI-powered (OpenAI + ChromaDB)`);
-        console.log('\n✅ Ready to answer questions about POPG!');
-        console.log('🔗 Open your browser and start chatting.');
+        console.log(`⚙️  Mode: AI-powered widget (OpenAI + ChromaDB)`);
+        console.log('\n✅ Widget ready for embedding on POPG.com!');
+        console.log('🔗 Visit the demo page to test the widget.');
     } catch (error) {
         console.log(`🔗 ChromaDB connection: ❌ Failed`);
         console.log(`📚 Knowledge base: Not found`);
@@ -620,7 +635,7 @@ app.listen(PORT, async () => {
         console.log('   1. Ensure ChromaDB is running: docker-compose up -d');
         console.log('   2. Train the AI: npm run train');
         console.log('   3. Verify OpenAI API key in .env file');
-        console.log('\n❌ Bot is not ready until setup is complete.');
+        console.log('\n❌ Widget is not ready until setup is complete.');
     }
 });
 

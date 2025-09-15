@@ -1,23 +1,24 @@
-# POPG AI Chatbot 🤖
+# POPG AI Chat Widget 🤖
 
-A powerful AI chatbot trained on POPG.com content using OpenAI embeddings and ChromaDB for semantic search. This bot can answer questions about POPG's services, tokenomics, games, and platform features.
+A powerful embeddable AI chat widget for POPG.com that can answer questions about POPG's services, tokenomics, games, and platform features. Built with OpenAI embeddings and ChromaDB for intelligent semantic search.
 
-![POPG AI Bot](https://img.shields.io/badge/AI-Powered-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange)
+![POPG AI Widget](https://img.shields.io/badge/AI-Powered-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange) ![Widget](https://img.shields.io/badge/Widget-Embeddable-purple)
 
 ## 🚀 Features
 
+- **Embeddable Chat Widget**: Professional floating chat widget for any website
 - **Smart Web Scraping**: Automatically crawls and indexes POPG.com content
 - **AI-Powered Responses**: Uses OpenAI GPT-4 and embeddings for intelligent answers
 - **Vector Search**: ChromaDB for fast and accurate semantic content retrieval
-- **Modern Chat Interface**: Clean, responsive web interface for user interactions
-- **Memory Efficient**: Optimized for processing large documents without crashes
-- **Real-time Chat**: Interactive chat experience with source attribution
+- **Modern UI**: Clean, responsive widget design with POPG branding
+- **Easy Integration**: Simple one-line embed for any website
+- **Mobile Optimized**: Works perfectly on all devices
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Web Scraper   │───▶│   ChromaDB       │───▶│  Chat Interface │
+│   Web Scraper   │───▶│   ChromaDB       │───▶│  Chat Widget    │
 │   (trainer.js)  │    │   (Embeddings)   │    │   (Frontend)    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          │                       │                       │
@@ -76,8 +77,47 @@ npm run train
 npm start
 ```
 
-### 7. Open Your Browser
-Navigate to `http://localhost:3000` and start chatting with your POPG AI bot! 🎉
+### 7. View the Widget Demo
+Navigate to `http://localhost:3000` to see the widget demo page! 🎉
+
+## 💻 Widget Integration
+
+### Easy Embed (Recommended)
+Add this single line to any website:
+```html
+<script src="http://localhost:3000/embed"></script>
+```
+
+### Manual Integration
+For more control, include the widget files manually:
+```html
+<!-- Include dependencies -->
+<link rel="stylesheet" href="http://localhost:3000/widget.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- Widget HTML -->
+<div class="popg-chat-widget" id="popgChatWidget" 
+     data-api-url="http://localhost:3000/api/chat"
+     data-position="bottom-right"
+     data-theme="light">
+     <!-- Widget content loaded automatically -->
+</div>
+
+<!-- Widget script -->
+<script src="http://localhost:3000/widget.js"></script>
+```
+
+### Widget Configuration Options
+```html
+<div class="popg-chat-widget" id="popgChatWidget" 
+     data-api-url="/api/chat"           <!-- API endpoint -->
+     data-position="bottom-right"       <!-- bottom-right, bottom-left, top-right, top-left -->
+     data-theme="light"                 <!-- light, dark -->
+     data-auto-open="false"             <!-- true, false -->
+     data-show-notification="true">     <!-- true, false -->
+</div>
+```
 
 ## 🔧 Configuration
 

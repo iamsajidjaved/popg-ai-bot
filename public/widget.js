@@ -285,7 +285,22 @@ class POPGChatWidget {
         
         // Handle markdown for bot messages
         if (sender === 'bot') {
-            bubble.innerHTML = marked.parse(content);
+            // Simple text processing - convert basic markdown but keep it clean
+            let processedContent = content
+                // Convert **bold** to <strong>
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Convert bullet points to simple list items
+                .replace(/^• (.+)$/gm, '<div style="margin: 4px 0; padding-left: 12px;">• $1</div>')
+                // Convert line breaks to proper spacing
+                .replace(/\n\n/g, '</p><p style="margin: 8px 0;">')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph if no paragraph tags exist
+            if (!processedContent.includes('<p>') && !processedContent.includes('<div>')) {
+                processedContent = `<p style="margin: 8px 0;">${processedContent}</p>`;
+            }
+            
+            bubble.innerHTML = processedContent;
         } else {
             bubble.textContent = content;
         }
