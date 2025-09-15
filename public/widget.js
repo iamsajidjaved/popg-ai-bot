@@ -44,6 +44,8 @@ class POPGChatWidget {
         this.chatWindow = document.getElementById('chatWindow');
         this.minimizeBtn = document.getElementById('minimizeBtn');
         this.closeBtn = document.getElementById('closeBtn');
+        this.exportBtn = document.getElementById('exportBtn');
+        this.clearBtn = document.getElementById('clearBtn');
         this.welcomeSection = document.getElementById('welcomeSection');
         this.chatMessages = document.getElementById('chatMessages');
         this.typingIndicator = document.getElementById('typingIndicator');
@@ -52,6 +54,9 @@ class POPGChatWidget {
         this.sendBtn = document.getElementById('sendBtn');
         this.errorToast = document.getElementById('errorToast');
         this.notification = document.getElementById('toggleNotification');
+        
+        // Store conversation history
+        this.conversationHistory = [];
     }
     
     bindEvents() {
@@ -61,6 +66,8 @@ class POPGChatWidget {
         // Window controls
         this.minimizeBtn?.addEventListener('click', () => this.minimizeChat());
         this.closeBtn?.addEventListener('click', () => this.closeChat());
+        this.exportBtn?.addEventListener('click', () => this.exportConversation());
+        this.clearBtn?.addEventListener('click', () => this.clearConversation());
         
         // Form submission
         this.inputForm?.addEventListener('submit', (e) => this.handleSubmit(e));
@@ -185,14 +192,14 @@ class POPGChatWidget {
         
         const message = this.messageInput?.value.trim();
         if (!message || this.isLoading) return;
-        
-        await this.sendMessage(message);
-        
-        // Clear input
+
+        // Clear input immediately for better UX
         if (this.messageInput) {
             this.messageInput.value = '';
             this.updateSendButton();
         }
+        
+        await this.sendMessage(message);
     }
     
     async sendMessage(message) {
@@ -238,26 +245,30 @@ class POPGChatWidget {
             
             this.hideTyping();
             
-            // Different error messages based on the error type
-            let errorMessage = 'Sorry, I encountered an error. Please try again.';
+            // Professional error handling with detailed messages
+            let errorMessage = 'I apologize for the technical difficulty. Please try again.';
+            let chatErrorMessage = 'I\'m experiencing a temporary connection issue. Please try your question again in a moment.';
             
             if (error.message.includes('Failed to fetch') || error.message.includes('ERR_FAILED')) {
                 if (window.location.protocol === 'file:') {
-                    errorMessage = 'Please serve this page through the server (http://localhost:3000/demo) instead of opening the HTML file directly.';
+                    errorMessage = 'Widget requires server environment. Please access via http://localhost:3000/demo';
+                    chatErrorMessage = '**Technical Notice:** This POPG AI widget requires a web server environment to function properly.\n\n**Solution:** Please visit http://localhost:3000/demo to experience the full functionality.\n\n**For Developers:** Serve this through a local web server instead of opening the HTML file directly.';
                 } else {
-                    errorMessage = 'Unable to connect to the server. Please check if the server is running.';
+                    errorMessage = 'Server connection unavailable. Please verify the POPG AI service is running.';
+                    chatErrorMessage = '**Connection Issue:** I\'m unable to reach the POPG AI service at the moment.\n\n**Please try:**\n• Refreshing the page\n• Checking your internet connection\n• Contacting support if the issue persists\n\nI apologize for the inconvenience.';
                 }
+            } else if (error.message.includes('timeout')) {
+                errorMessage = 'Request timeout. The server may be busy.';
+                chatErrorMessage = '**Request Timeout:** The server is taking longer than expected to respond.\n\n**Suggested Actions:**\n• Try a shorter, more specific question\n• Wait a moment and try again\n• The server may be experiencing high traffic\n\nThank you for your patience.';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Internal server error. Please contact support.';
+                chatErrorMessage = '**Service Temporarily Unavailable:** The POPG AI service is experiencing technical difficulties.\n\n**Status:** Our technical team has been notified\n**Estimated Resolution:** Usually within a few minutes\n\n**Meanwhile, you can:**\n• Visit our [official website](https://popg.com) for basic information\n• Contact our support team directly\n\nWe apologize for the inconvenience.';
             }
             
             this.showError(errorMessage);
             
-            // Add error message to chat
-            this.addMessage(
-                window.location.protocol === 'file:' ? 
-                    '⚠️ This widget needs to be served through a web server to work properly. Please visit http://localhost:3000/demo to test the widget.' :
-                    'I apologize, but I\'m having trouble connecting right now. Please try again in a moment.',
-                'bot'
-            );
+            // Add professional error message to chat
+            this.addMessage(chatErrorMessage, 'bot');
             
         } finally {
             this.isLoading = false;
@@ -309,10 +320,33 @@ class POPGChatWidget {
         
         const time = document.createElement('div');
         time.className = 'message-time';
-        time.textContent = new Date().toLocaleTimeString([], { 
+        const now = new Date();
+        time.textContent = now.toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
         });
+        time.title = now.toLocaleString(); // Full timestamp on hover
+
+        // Add message actions for bot messages
+        if (sender === 'bot') {
+            const actions = document.createElement('div');
+            actions.className = 'message-actions';
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'action-btn copy-btn';
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            copyBtn.title = 'Copy message';
+            copyBtn.addEventListener('click', () => this.copyMessage(content));
+            
+            const timestampBtn = document.createElement('button');
+            timestampBtn.className = 'action-btn timestamp-btn';
+            timestampBtn.innerHTML = '<i class="fas fa-clock"></i>';
+            timestampBtn.title = `Sent at ${now.toLocaleString()}`;
+            
+            actions.appendChild(copyBtn);
+            actions.appendChild(timestampBtn);
+            messageContent.appendChild(actions);
+        }
         
         messageContent.appendChild(bubble);
         messageContent.appendChild(time);
@@ -321,6 +355,14 @@ class POPGChatWidget {
         messageDiv.appendChild(messageContent);
         
         this.chatMessages.appendChild(messageDiv);
+        
+        // Track in conversation history
+        this.conversationHistory.push({
+            content: content,
+            sender: sender,
+            timestamp: now,
+            id: Date.now() + Math.random()
+        });
         
         // Scroll to bottom
         this.scrollToBottom();
@@ -342,6 +384,19 @@ class POPGChatWidget {
     showTyping() {
         if (this.typingIndicator) {
             this.typingIndicator.style.display = 'flex';
+            
+            // Add professional status message
+            const statusText = this.typingIndicator.querySelector('.typing-text');
+            if (statusText) {
+                const messages = [
+                    'POPG AI is analyzing your question...',
+                    'Processing your request...',
+                    'Gathering information...',
+                    'Preparing response...'
+                ];
+                statusText.textContent = messages[Math.floor(Math.random() * messages.length)];
+            }
+            
             this.scrollToBottom();
         }
     }
@@ -362,8 +417,10 @@ class POPGChatWidget {
         
         if (this.isLoading) {
             this.sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.sendBtn.setAttribute('title', 'Processing...');
         } else {
             this.sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            this.sendBtn.setAttribute('title', hasText ? 'Send message' : 'Type a message first');
         }
     }
     
@@ -428,6 +485,154 @@ class POPGChatWidget {
             this.widget.classList.toggle('dark-theme', theme === 'dark');
         }
         this.options.theme = theme;
+    }
+    
+    copyMessage(content) {
+        // Remove HTML tags for clean copying
+        const cleanContent = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(cleanContent).then(() => {
+                this.showNotification('Message copied to clipboard!');
+            }).catch(() => {
+                this.fallbackCopy(cleanContent);
+            });
+        } else {
+            this.fallbackCopy(cleanContent);
+        }
+    }
+    
+    fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            this.showNotification('Message copied to clipboard!');
+        } catch (err) {
+            this.showNotification('Copy failed. Please copy manually.', 'error');
+        }
+        document.body.removeChild(textarea);
+    }
+    
+    showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `widget-notification ${type}`;
+        notification.textContent = message;
+        
+        // Style the notification
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#dc3545' : '#28a745'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10001;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideInDown 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutUp 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    exportConversation() {
+        if (this.conversationHistory.length === 0) {
+            this.showNotification('No conversation to export', 'error');
+            return;
+        }
+        
+        // Create formatted conversation text
+        const exportData = {
+            export_date: new Date().toISOString(),
+            platform: 'POPG AI Chat Widget',
+            total_messages: this.conversationHistory.length,
+            conversation: this.conversationHistory.map(msg => ({
+                timestamp: msg.timestamp.toISOString(),
+                sender: msg.sender === 'bot' ? 'POPG AI Assistant' : 'User',
+                message: msg.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+            }))
+        };
+        
+        // Create downloadable file
+        const jsonContent = JSON.stringify(exportData, null, 2);
+        const txtContent = this.formatConversationAsText(exportData);
+        
+        // Create download links
+        this.downloadFile(jsonContent, 'popg-conversation.json', 'application/json');
+        
+        // Also offer text version
+        setTimeout(() => {
+            this.downloadFile(txtContent, 'popg-conversation.txt', 'text/plain');
+        }, 500);
+        
+        this.showNotification('Conversation exported successfully!');
+    }
+    
+    formatConversationAsText(data) {
+        let text = `POPG AI Conversation Export\n`;
+        text += `Export Date: ${new Date(data.export_date).toLocaleString()}\n`;
+        text += `Total Messages: ${data.total_messages}\n`;
+        text += `${'='.repeat(50)}\n\n`;
+        
+        data.conversation.forEach(msg => {
+            text += `[${new Date(msg.timestamp).toLocaleString()}] ${msg.sender}:\n`;
+            text += `${msg.message}\n\n`;
+        });
+        
+        text += `${'='.repeat(50)}\n`;
+        text += `Generated by POPG AI Chat Widget\n`;
+        
+        return text;
+    }
+    
+    downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    clearConversation() {
+        if (this.conversationHistory.length === 0) {
+            this.showNotification('No conversation to clear', 'error');
+            return;
+        }
+        
+        // Show confirmation dialog
+        if (confirm('Are you sure you want to clear the entire conversation? This action cannot be undone.')) {
+            // Clear visual messages
+            if (this.chatMessages) {
+                this.chatMessages.innerHTML = '';
+            }
+            
+            // Clear history
+            this.conversationHistory = [];
+            
+            // Show welcome section again
+            if (this.welcomeSection) {
+                this.welcomeSection.style.display = 'block';
+            }
+            
+            this.showNotification('Conversation cleared successfully!');
+        }
     }
     
     destroy() {

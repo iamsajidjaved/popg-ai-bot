@@ -378,6 +378,67 @@
     text-align: left;
 }
 
+/* Message Actions */
+.message-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: var(--space-1);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.message:hover .message-actions {
+    opacity: 1;
+}
+
+.message-actions .action-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.message-actions .action-btn:hover {
+    background: var(--popg-primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+/* Notification animations */
+@keyframes slideInDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutUp {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
 /* Markdown Content - Simplified for widget */
 .message-bubble h1,
 .message-bubble h2,
@@ -479,9 +540,10 @@
 /* Typing Indicator */
 .typing-indicator {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-2);
     padding: var(--space-2) 0;
+    opacity: 0.9;
 }
 
 .typing-avatar {
@@ -494,6 +556,13 @@
     justify-content: center;
     color: var(--text-white);
     font-size: 14px;
+    animation: pulse 2s infinite;
+}
+
+.typing-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .typing-dots {
@@ -503,6 +572,14 @@
     background: var(--bot-bg);
     border-radius: var(--radius-lg);
     border-bottom-left-radius: var(--radius-sm);
+}
+
+.typing-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 0 var(--space-2);
+    opacity: 0.8;
 }
 
 .typing-dots span {

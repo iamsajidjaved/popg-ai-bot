@@ -41,6 +41,12 @@
                     </div>
                 </div>
                 <div class="header-actions">
+                    <button class="action-btn export-btn" id="exportBtn" title="Export Conversation">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="action-btn clear-btn" id="clearBtn" title="Clear Chat">
+                        <i class="fas fa-trash"></i>
+                    </button>
                     <button class="action-btn minimize-btn" id="minimizeBtn" title="Minimize">
                         <i class="fas fa-minus"></i>
                     </button>
@@ -119,10 +125,13 @@
                     <div class="typing-avatar">
                         <i class="fas fa-robot"></i>
                     </div>
-                    <div class="typing-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                    <div class="typing-content">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="typing-text">POPG AI is thinking...</div>
                     </div>
                 </div>
             </div>
