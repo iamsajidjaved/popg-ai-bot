@@ -386,10 +386,6 @@ class POPGChatWidget {
         this.closeChat();
     }
     
-    minimize() {
-        this.minimizeChat();
-    }
-    
     sendText(message) {
         if (message && message.trim()) {
             this.sendMessage(message.trim());

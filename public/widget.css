@@ -814,14 +814,3 @@
 .popg-chat-widget {
     animation: slideInUp 0.5s ease-out;
 }
-
-/* Hide elements when minimized */
-.chat-window.minimized {
-    height: 60px;
-    overflow: hidden;
-}
-
-.chat-window.minimized .chat-content,
-.chat-window.minimized .chat-input {
-    display: none;
-}
