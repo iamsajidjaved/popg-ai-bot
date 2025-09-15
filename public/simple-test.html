@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f0f2f5;
+        }
+        .test-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .instruction {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-content">
+        <h1>POPG AI Widget Simple Test</h1>
+        <p>This is a minimal test page to verify the chat widget works.</p>
+        
+        <div class="instruction">
+            <strong>Expected behavior:</strong>
+            <ol>
+                <li>A blue chat button should appear in the bottom-right corner</li>
+                <li>Clicking it should open/close the chat widget</li>
+                <li>The widget should load in an iframe</li>
+            </ol>
+        </div>
+        
+        <p>If you don't see the chat button, there might be an issue with the widget integration.</p>
+        
+        <div id="widget-status">
+            <strong>Widget Status:</strong> <span id="status-text">Checking...</span>
+        </div>
+    </div>
+
+    <!-- Widget Configuration -->
+    <script>
+        window.popgConfig = {
+            position: 'bottom-right',
+            primaryColor: '#2196f3',
+            margin: '20px'
+        };
+        
+        // Simple status checker
+        function checkWidgetStatus() {
+            const statusElement = document.getElementById('status-text');
+            
+            setTimeout(() => {
+                const toggle = document.getElementById('popg-chat-toggle');
+                const container = document.getElementById('popg-chat-widget-container');
+                
+                if (toggle && container) {
+                    statusElement.textContent = '✅ Widget loaded successfully!';
+                    statusElement.style.color = 'green';
+                } else {
+                    statusElement.textContent = '❌ Widget not found';
+                    statusElement.style.color = 'red';
+                    
+                    // Show what's missing
+                    if (!toggle) console.log('Missing: popg-chat-toggle');
+                    if (!container) console.log('Missing: popg-chat-widget-container');
+                }
+            }, 3000);
+        }
+        
+        window.addEventListener('load', checkWidgetStatus);
+    </script>
+
+    <!-- Load Widget -->
+    <script src="/embed.js"></script>
+</body>
+</html>
