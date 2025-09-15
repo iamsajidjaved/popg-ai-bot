@@ -392,6 +392,20 @@ app.get('/widget.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'widget.js'));
 });
 
+// Serve embed script with proper headers for cross-origin use
+app.get('/embed.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.sendFile(path.join(__dirname, 'public', 'embed.js'));
+});
+
+// Serve embed demo page
+app.get('/embed-demo', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'embed-demo.html'));
+});
+
 /**
  * Widget embed script - generates embeddable code
  */

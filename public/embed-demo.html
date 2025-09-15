@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POPG AI Widget Demo - Easy Embed Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        h2 {
+            color: #3498db;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .demo-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .test-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .test-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+
+        .test-btn.secondary {
+            background: linear-gradient(45deg, #28a745, #1e7e34);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        }
+
+        .test-btn.secondary:hover {
+            box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+        }
+
+        .alert {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .alert.info {
+            background: #cce7ff;
+            border-color: #b8daff;
+            color: #004085;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 POPG AI Widget - Live Demo</h1>
+        
+        <div class="alert info">
+            <strong>Live Demo:</strong> The POPG AI chat widget is now active on this page! 
+            Look for the chat button in the bottom-right corner. Click it to test the full functionality.
+        </div>
+
+        <h2>📋 Easy Integration</h2>
+        <div class="demo-section">
+            <p><strong>Just one line of code to add POPG AI to any website:</strong></p>
+            <div class="code-block">
+&lt;script src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;
+            </div>
+            <p>That's it! Copy, paste, and you're done. Works with WordPress, Shopify, Wix, Squarespace, and any HTML website.</p>
+        </div>
+
+        <h2>🎨 Customization Examples</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>🎯 Position Control</h3>
+                <p>Place the widget in any corner:</p>
+                <div class="code-block" style="font-size: 12px;">
+window.popgConfig = {
+    position: 'bottom-left'
+};
+                </div>
+                <p><small>Options: bottom-right, bottom-left, top-right, top-left</small></p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🎨 Color Theming</h3>
+                <p>Match your brand colors:</p>
+                <div class="code-block" style="font-size: 12px;">
+window.popgConfig = {
+    primaryColor: '#28a745'
+};
+                </div>
+                <p><small>Use any hex color code</small></p>
+            </div>
+
+            <div class="feature-card">
+                <h3>📏 Spacing Control</h3>
+                <p>Adjust distance from edges:</p>
+                <div class="code-block" style="font-size: 12px;">
+window.popgConfig = {
+    margin: '30px'
+};
+                </div>
+                <p><small>Perfect for fitting your layout</small></p>
+            </div>
+        </div>
+
+        <h2>🛠 Test Widget Controls</h2>
+        <div class="demo-section">
+            <p>Try these interactive controls to test the widget functionality:</p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="window.popgWidget && window.popgWidget.open()">
+                    💬 Open Chat Widget
+                </button>
+                <button class="test-btn secondary" onclick="window.popgWidget && window.popgWidget.close()">
+                    ❌ Close Chat Widget
+                </button>
+                <button class="test-btn" onclick="window.popgWidget && window.popgWidget.toggle()">
+                    🔄 Toggle Chat Widget
+                </button>
+            </div>
+        </div>
+
+        <h2>✨ Key Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>📱 Fully Responsive</h3>
+                <p>Adapts perfectly to mobile, tablet, and desktop screens. On mobile, it expands to full screen for optimal chat experience.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🎯 Smart Default Questions</h3>
+                <p>Users can start conversations instantly with pre-defined questions about POPG features, pricing, and benefits.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🔒 Secure & Private</h3>
+                <p>All communications are encrypted. No data is collected without user interaction. CORS-enabled for cross-domain security.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>⚡ Lightning Fast</h3>
+                <p>Loads asynchronously without slowing down your website. Cached for optimal performance.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🎨 Customizable</h3>
+                <p>Match your brand with custom colors, positioning, and styling options.</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🔧 Easy Integration</h3>
+                <p>Works with any website platform - WordPress, Shopify, Wix, Squarespace, or custom HTML.</p>
+            </div>
+        </div>
+
+        <h2>📖 Installation Guide</h2>
+        <div class="demo-section">
+            <h3>For WordPress:</h3>
+            <ol>
+                <li>Install "Insert Headers and Footers" plugin</li>
+                <li>Go to Settings → Insert Headers and Footers</li>
+                <li>Paste embed code in "Scripts in Footer"</li>
+                <li>Save changes</li>
+            </ol>
+
+            <h3>For Any HTML Website:</h3>
+            <ol>
+                <li>Open your HTML file</li>
+                <li>Find the <code>&lt;/body&gt;</code> tag</li>
+                <li>Paste the embed code just before it</li>
+                <li>Save the file</li>
+            </ol>
+
+            <div class="alert">
+                <strong>💡 Pro Tip:</strong> Replace "your-domain.com" in the embed code with your actual server domain where POPG AI is hosted.
+            </div>
+        </div>
+
+        <h2>🌟 Why Choose POPG AI Widget?</h2>
+        <div class="demo-section">
+            <ul>
+                <li><strong>One-Line Integration:</strong> Easier than any other chat widget solution</li>
+                <li><strong>AI-Powered:</strong> Intelligent responses about POPG cryptocurrency</li>
+                <li><strong>Real-Time Pricing:</strong> Always up-to-date POPG market information</li>
+                <li><strong>Community Focused:</strong> Helps users understand POPG benefits and features</li>
+                <li><strong>Mobile Optimized:</strong> Perfect experience on all devices</li>
+                <li><strong>Brand Friendly:</strong> Customizable to match your website design</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- POPG Configuration (customize before embed) -->
+    <script>
+    window.popgConfig = {
+        position: 'bottom-right',
+        primaryColor: '#007bff',
+        margin: '20px'
+    };
+    </script>
+
+    <!-- POPG AI Widget Embed Script -->
+    <script src="/embed.js"></script>
+</body>
+</html>
