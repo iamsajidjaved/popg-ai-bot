@@ -1,318 +1,484 @@
-// Global variables
-let conversationId = null;
-let isLoading = false;
+// Modern POPG AI Chatbot Interface
+class POPGChatbot {
+    constructor() {
+        this.isConnected = false;
+        this.isLoading = false;
+        this.messageHistory = [];
+        this.sidebarOpen = true;
+        
+        this.initializeElements();
+        this.initializeEventListeners();
+        this.initializeConnection();
+        this.setupExampleQuestions();
+        this.setupAutoResize();
+    }
 
-// DOM elements
-const chatMessages = document.getElementById('chatMessages');
-const messageInput = document.getElementById('messageInput');
-const chatForm = document.getElementById('chatForm');
-const sendButton = document.getElementById('sendButton');
-const typingIndicator = document.getElementById('typingIndicator');
-const statusDot = document.getElementById('statusDot');
-const statusText = document.getElementById('statusText');
-const charCount = document.getElementById('charCount');
-const errorToast = document.getElementById('errorToast');
-const errorMessage = document.getElementById('errorMessage');
+    initializeElements() {
+        // Get DOM elements
+        this.sidebar = document.getElementById('sidebar');
+        this.sidebarToggle = document.getElementById('sidebarToggle');
+        this.newChatBtn = document.getElementById('newChatBtn');
+        this.chatContainer = document.getElementById('chatContainer');
+        this.chatMessages = document.getElementById('chatMessages');
+        this.welcomeScreen = document.getElementById('welcomeScreen');
+        this.inputForm = document.getElementById('inputForm');
+        this.userInput = document.getElementById('userInput');
+        this.sendButton = document.getElementById('sendButton');
+        this.statusDot = document.getElementById('statusDot');
+        this.statusText = document.getElementById('statusText');
+        this.charCount = document.getElementById('charCount');
+        
+        // Initialize character count
+        this.updateCharCount();
+    }
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-    setupEventListeners();
-    checkServerHealth();
-});
+    initializeEventListeners() {
+        // Sidebar toggle
+        this.sidebarToggle?.addEventListener('click', () => this.toggleSidebar());
+        
+        // New chat button
+        this.newChatBtn?.addEventListener('click', () => this.startNewChat());
+        
+        // Form submission
+        this.inputForm?.addEventListener('submit', (e) => this.handleSubmit(e));
+        
+        // Input field events
+        this.userInput?.addEventListener('input', () => {
+            this.updateCharCount();
+            this.adjustTextareaHeight();
+        });
+        
+        this.userInput?.addEventListener('keydown', (e) => this.handleKeydown(e));
+        
+        // Mobile responsiveness
+        window.addEventListener('resize', () => this.handleResize());
+        
+        // Click outside sidebar to close (mobile)
+        document.addEventListener('click', (e) => this.handleOutsideClick(e));
+    }
 
-/**
- * Initialize the application
- */
-function initializeApp() {
-    // Auto-resize textarea
-    messageInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        updateCharacterCount();
-    });
+    initializeConnection() {
+        // Simulate connection check
+        setTimeout(() => {
+            this.setConnectionStatus(true);
+        }, 1000);
+    }
 
-    // Generate conversation ID
-    conversationId = Date.now().toString();
-    
-    console.log('🤖 AI Chatbot initialized');
-}
+    setupExampleQuestions() {
+        const questionCards = document.querySelectorAll('.question-card');
+        questionCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const questionText = card.querySelector('.question-text').textContent;
+                this.sendMessage(questionText);
+            });
+        });
+    }
 
-/**
- * Setup event listeners
- */
-function setupEventListeners() {
-    // Form submission
-    chatForm.addEventListener('submit', handleFormSubmit);
-    
-    // Enter key handling
-    messageInput.addEventListener('keydown', function(e) {
+    setupAutoResize() {
+        // Auto-resize textarea
+        this.adjustTextareaHeight();
+    }
+
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+        this.sidebar?.classList.toggle('open', this.sidebarOpen);
+        
+        // Save preference
+        localStorage.setItem('sidebarOpen', this.sidebarOpen);
+    }
+
+    startNewChat() {
+        this.messageHistory = [];
+        this.clearMessages();
+        this.showWelcomeScreen();
+        this.focusInput();
+    }
+
+    handleSubmit(e) {
+        e.preventDefault();
+        
+        const message = this.userInput?.value.trim();
+        if (!message || this.isLoading) return;
+        
+        this.sendMessage(message);
+    }
+
+    handleKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (!isLoading && this.value.trim()) {
-                handleFormSubmit(e);
-            }
+            this.handleSubmit(e);
         }
-    });
-    
-    // Suggestion buttons
-    document.querySelectorAll('.suggestion-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const suggestion = this.getAttribute('data-suggestion');
-            messageInput.value = suggestion;
-            updateCharacterCount();
-            messageInput.focus();
-        });
-    });
-}
+    }
 
-/**
- * Handle form submission
- */
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    const message = messageInput.value.trim();
-    if (!message || isLoading) return;
-    
-    // Add user message to chat
-    addMessage(message, 'user');
-    
-    // Clear input
-    messageInput.value = '';
-    messageInput.style.height = 'auto';
-    updateCharacterCount();
-    
-    // Show typing indicator
-    showTypingIndicator();
-    
-    try {
-        isLoading = true;
-        updateSendButton();
+    handleResize() {
+        // Handle responsive behavior
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.sidebarOpen) {
+            // Close sidebar on mobile when resizing
+            this.sidebarOpen = false;
+            this.sidebar?.classList.remove('open');
+        }
+    }
+
+    handleOutsideClick(e) {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.sidebarOpen && 
+            !this.sidebar?.contains(e.target) && 
+            !this.sidebarToggle?.contains(e.target)) {
+            this.toggleSidebar();
+        }
+    }
+
+    setConnectionStatus(connected) {
+        this.isConnected = connected;
         
-        // Send message to API
-        const response = await sendMessageToAPI(message);
-        
-        // Hide typing indicator
-        hideTypingIndicator();
-        
-        // Add bot response
-        addMessage(response.response, 'bot', response.sources);
-        
-        // Update conversation ID
-        if (response.conversationId) {
-            conversationId = response.conversationId;
+        if (this.statusDot) {
+            this.statusDot.classList.toggle('connected', connected);
         }
         
-    } catch (error) {
-        hideTypingIndicator();
-        showError('Failed to get response. Please try again.');
-        console.error('Chat error:', error);
-    } finally {
-        isLoading = false;
-        updateSendButton();
-        messageInput.focus();
-    }
-}
-
-/**
- * Send message to the API
- */
-async function sendMessageToAPI(message) {
-    const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            message: message,
-            conversationId: conversationId
-        })
-    });
-    
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-    
-    return await response.json();
-}
-
-/**
- * Add message to chat
- */
-function addMessage(text, sender, sources = []) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
-    
-    const content = document.createElement('div');
-    content.className = 'message-content';
-    
-    const messageText = document.createElement('div');
-    messageText.className = 'message-text';
-    
-    // Render markdown for bot messages, plain text for user messages
-    if (sender === 'bot') {
-        messageText.className += ' markdown-content';
-        messageText.innerHTML = marked.parse(text);
-    } else {
-        messageText.textContent = text;
-    }
-    
-    const messageTime = document.createElement('div');
-    messageTime.className = 'message-time';
-    messageTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    content.appendChild(messageText);
-    content.appendChild(messageTime);
-    
-    // Add sources if available (bot messages only)
-    if (sender === 'bot' && sources && sources.length > 0) {
-        const sourcesDiv = document.createElement('div');
-        sourcesDiv.className = 'message-sources';
+        if (this.statusText) {
+            this.statusText.textContent = connected ? 'Connected' : 'Disconnected';
+        }
         
-        const sourcesTitle = document.createElement('div');
-        sourcesTitle.className = 'sources-title';
-        sourcesTitle.innerHTML = '<i class="fas fa-link"></i> Sources:';
-        sourcesDiv.appendChild(sourcesTitle);
-        
-        // Remove duplicates and limit to 3 sources
-        const uniqueSources = Array.from(new Set(sources.map(s => s.url)))
-            .slice(0, 3)
-            .map(url => sources.find(s => s.url === url));
-        
-        uniqueSources.forEach(source => {
-            const sourceLink = document.createElement('a');
-            sourceLink.className = 'source-link';
-            sourceLink.href = source.url;
-            sourceLink.target = '_blank';
-            sourceLink.rel = 'noopener noreferrer';
-            sourceLink.textContent = source.title || source.url;
-            sourcesDiv.appendChild(sourceLink);
-        });
-        
-        content.appendChild(sourcesDiv);
+        // Update send button state
+        this.updateSendButton();
     }
-    
-    messageDiv.appendChild(avatar);
-    messageDiv.appendChild(content);
-    
-    chatMessages.appendChild(messageDiv);
-    scrollToBottom();
-}
 
-/**
- * Show typing indicator
- */
-function showTypingIndicator() {
-    typingIndicator.style.display = 'flex';
-    scrollToBottom();
-}
-
-/**
- * Hide typing indicator
- */
-function hideTypingIndicator() {
-    typingIndicator.style.display = 'none';
-}
-
-/**
- * Update send button state
- */
-function updateSendButton() {
-    sendButton.disabled = isLoading;
-    sendButton.innerHTML = isLoading ? 
-        '<i class="fas fa-spinner fa-spin"></i>' : 
-        '<i class="fas fa-paper-plane"></i>';
-}
-
-/**
- * Update character count
- */
-function updateCharacterCount() {
-    const count = messageInput.value.length;
-    charCount.textContent = count;
-    
-    if (count > 450) {
-        charCount.style.color = 'var(--error)';
-    } else if (count > 400) {
-        charCount.style.color = 'var(--warning)';
-    } else {
-        charCount.style.color = 'var(--text-muted)';
+    updateCharCount() {
+        const count = this.userInput?.value.length || 0;
+        const maxLength = 2000;
+        
+        if (this.charCount) {
+            this.charCount.textContent = `${count}/${maxLength}`;
+            this.charCount.style.color = count > maxLength * 0.9 ? 
+                'var(--warning)' : 'var(--text-muted)';
+        }
+        
+        this.updateSendButton();
     }
-}
 
-/**
- * Scroll chat to bottom
- */
-function scrollToBottom() {
-    requestAnimationFrame(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    });
-}
+    adjustTextareaHeight() {
+        if (!this.userInput) return;
+        
+        this.userInput.style.height = 'auto';
+        this.userInput.style.height = Math.min(this.userInput.scrollHeight, 120) + 'px';
+    }
 
-/**
- * Show error message
- */
-function showError(message) {
-    errorMessage.textContent = message;
-    errorToast.style.display = 'flex';
-    
-    // Auto-hide after 5 seconds
-    setTimeout(hideError, 5000);
-}
+    updateSendButton() {
+        if (!this.sendButton) return;
+        
+        const hasText = this.userInput?.value.trim().length > 0;
+        const canSend = hasText && this.isConnected && !this.isLoading;
+        
+        this.sendButton.disabled = !canSend;
+        this.sendButton.innerHTML = this.isLoading ? 
+            '<i class="fas fa-spinner fa-spin"></i>' : 
+            '<i class="fas fa-paper-plane"></i>';
+    }
 
-/**
- * Hide error message
- */
-function hideError() {
-    errorToast.style.display = 'none';
-}
+    showWelcomeScreen() {
+        if (this.welcomeScreen) {
+            this.welcomeScreen.style.display = 'flex';
+        }
+        if (this.chatMessages) {
+            this.chatMessages.style.display = 'none';
+        }
+    }
 
-/**
- * Check server health
- */
-async function checkServerHealth() {
-    try {
-        const response = await fetch('/api/health');
-        if (response.ok) {
-            statusDot.classList.add('connected');
-            statusText.textContent = 'Connected';
+    hideWelcomeScreen() {
+        if (this.welcomeScreen) {
+            this.welcomeScreen.style.display = 'none';
+        }
+        if (this.chatMessages) {
+            this.chatMessages.style.display = 'flex';
+        }
+    }
+
+    clearMessages() {
+        if (this.chatMessages) {
+            this.chatMessages.innerHTML = '';
+        }
+    }
+
+    focusInput() {
+        this.userInput?.focus();
+    }
+
+    async sendMessage(message) {
+        if (!message.trim() || this.isLoading) return;
+        
+        // Hide welcome screen and show chat
+        this.hideWelcomeScreen();
+        
+        // Add user message
+        this.addMessage(message, 'user');
+        
+        // Clear input
+        if (this.userInput) {
+            this.userInput.value = '';
+            this.adjustTextareaHeight();
+            this.updateCharCount();
+        }
+        
+        // Set loading state
+        this.setLoading(true);
+        
+        // Show typing indicator
+        this.showTypingIndicator();
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message }),
+            });
             
-            // Check stats
-            const statsResponse = await fetch('/api/stats');
-            if (statsResponse.ok) {
-                const stats = await statsResponse.json();
-                statusText.textContent = `Ready • ${stats.totalDocuments} documents`;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        } else {
-            throw new Error('Server not responding');
+            
+            const data = await response.json();
+            
+            // Remove typing indicator
+            this.hideTypingIndicator();
+            
+            // Add bot response
+            this.addMessage(data.response, 'bot');
+            
+        } catch (error) {
+            console.error('Error:', error);
+            
+            // Remove typing indicator
+            this.hideTypingIndicator();
+            
+            // Show error message
+            this.addMessage(
+                'Sorry, I encountered an error while processing your request. Please try again.', 
+                'bot', 
+                true
+            );
+            
+            this.showToast('Failed to send message', 'error');
+        } finally {
+            this.setLoading(false);
+            this.focusInput();
         }
-    } catch (error) {
-        statusDot.classList.remove('connected');
-        statusText.textContent = 'Disconnected';
-        console.error('Health check failed:', error);
+    }
+
+    addMessage(content, sender, isError = false) {
+        if (!this.chatMessages) return;
         
-        // Retry after 5 seconds
-        setTimeout(checkServerHealth, 5000);
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = sender === 'user' ? 
+            '<i class="fas fa-user"></i>' : 
+            '<i class="fas fa-robot"></i>';
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        const messageText = document.createElement('div');
+        messageText.className = 'message-text';
+        
+        if (isError) {
+            messageText.style.borderColor = 'var(--error)';
+            messageText.style.background = 'rgba(239, 68, 68, 0.1)';
+        }
+        
+        // Handle markdown for bot messages
+        if (sender === 'bot') {
+            messageText.className += ' markdown-content';
+            messageText.innerHTML = marked.parse(content);
+            
+            // Highlight code blocks
+            messageText.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        } else {
+            messageText.textContent = content;
+        }
+        
+        const messageTime = document.createElement('div');
+        messageTime.className = 'message-time';
+        messageTime.textContent = new Date().toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        messageContent.appendChild(messageText);
+        messageContent.appendChild(messageTime);
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        
+        this.chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        this.scrollToBottom();
+        
+        // Store in history
+        this.messageHistory.push({ content, sender, timestamp: new Date() });
+    }
+
+    showTypingIndicator() {
+        if (!this.chatMessages) return;
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typingIndicator';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = '<i class="fas fa-robot"></i>';
+        avatar.style.background = 'var(--gradient-primary)';
+        avatar.style.color = 'white';
+        
+        const typingContent = document.createElement('div');
+        typingContent.className = 'typing-content';
+        
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'typing-dots';
+        dotsContainer.innerHTML = '<span></span><span></span><span></span>';
+        
+        const typingText = document.createElement('div');
+        typingText.className = 'typing-text';
+        typingText.textContent = 'POPG AI is thinking...';
+        
+        typingContent.appendChild(dotsContainer);
+        typingContent.appendChild(typingText);
+        
+        typingDiv.appendChild(avatar);
+        typingDiv.appendChild(typingContent);
+        
+        this.chatMessages.appendChild(typingDiv);
+        this.scrollToBottom();
+    }
+
+    hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    setLoading(loading) {
+        this.isLoading = loading;
+        this.updateSendButton();
+        
+        // Disable input while loading
+        if (this.userInput) {
+            this.userInput.disabled = loading;
+        }
+    }
+
+    scrollToBottom() {
+        if (this.chatContainer) {
+            this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+        }
+    }
+
+    showToast(message, type = 'info') {
+        const toastContainer = document.querySelector('.toast-container') || 
+                              this.createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    // Utility methods
+    formatTime(date) {
+        return date.toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    }
+
+    formatDate(date) {
+        return date.toLocaleDateString();
+    }
+
+    // Export chat history
+    exportChatHistory() {
+        const historyText = this.messageHistory
+            .map(msg => `[${this.formatTime(msg.timestamp)}] ${msg.sender.toUpperCase()}: ${msg.content}`)
+            .join('\n');
+        
+        const blob = new Blob([historyText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `popg-chat-${this.formatDate(new Date())}.txt`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+    }
+
+    // Save chat to localStorage
+    saveChatHistory() {
+        localStorage.setItem('popg-chat-history', JSON.stringify(this.messageHistory));
+    }
+
+    // Load chat from localStorage
+    loadChatHistory() {
+        try {
+            const saved = localStorage.getItem('popg-chat-history');
+            if (saved) {
+                this.messageHistory = JSON.parse(saved);
+                
+                // Restore messages
+                this.messageHistory.forEach(msg => {
+                    this.addMessage(msg.content, msg.sender);
+                });
+                
+                if (this.messageHistory.length > 0) {
+                    this.hideWelcomeScreen();
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load chat history:', error);
+        }
     }
 }
 
-/**
- * Handle connection status
- */
-window.addEventListener('online', () => {
-    checkServerHealth();
+// Initialize the chatbot when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.popgChatbot = new POPGChatbot();
+    
+    // Load saved sidebar state
+    const savedSidebarState = localStorage.getItem('sidebarOpen');
+    if (savedSidebarState !== null) {
+        window.popgChatbot.sidebarOpen = JSON.parse(savedSidebarState);
+        window.popgChatbot.sidebar?.classList.toggle('open', window.popgChatbot.sidebarOpen);
+    }
+    
+    // Optionally load chat history
+    // window.popgChatbot.loadChatHistory();
 });
 
-window.addEventListener('offline', () => {
-    statusDot.classList.remove('connected');
-    statusText.textContent = 'Offline';
-});
-
-// Export functions for global access
-window.hideError = hideError;
+// Auto-save chat history periodically
+setInterval(() => {
+    if (window.popgChatbot && window.popgChatbot.messageHistory.length > 0) {
+        window.popgChatbot.saveChatHistory();
+    }
+}, 30000); // Save every 30 seconds
