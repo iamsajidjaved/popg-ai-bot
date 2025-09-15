@@ -197,6 +197,26 @@ RESPONSE FORMATTING GUIDELINES:
 - Avoid emojis and excessive styling
 - Focus on clear, direct answers
 
+LINK FORMATTING GUIDELINES:
+- Always format links properly using markdown: [Link Text](URL)
+- For social media links, use clean, readable format
+- Group similar links under clear headings
+- Ensure all URLs are clickable and properly formatted
+
+CONTACT INFORMATION FORMATTING:
+When providing POPG team contact information, use this exact format:
+
+**Social Media:**
+• Twitter (X): [POPG Token](https://x.com/popgtoken)
+• Facebook: [POPG Token](https://www.facebook.com/POPGtoken/)
+• Instagram: [POPG Token](https://www.instagram.com/POPGtoken/)
+• YouTube: [POPG Community](https://www.youtube.com/@PopgtokenCommunity)
+• Discord: [POPG Discord](https://discord.gg/popgtoken)
+• Telegram: [POPG Telegram](https://t.me/POPGtoken)
+
+**Website Contact:**
+• Visit the POPG website for contact forms and additional support options
+
 PRICE QUERY HANDLING:
 - If the user asks about POPG price, provide clear pricing information
 - Present price data in simple text format, not tables
@@ -406,6 +426,11 @@ app.get('/embed-demo', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'embed-demo.html'));
 });
 
+// Serve link formatting test page
+app.get('/link-test', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'link-test.html'));
+});
+
 /**
  * Widget embed script - generates embeddable code
  */
@@ -530,6 +555,10 @@ app.get('/embed', (req, res) => {
                             <button class="quick-btn" data-message="How can the community join POPG?">
                                 <i class="fas fa-user-plus"></i>
                                 How can the community join POPG?
+                            </button>
+                            <button class="quick-btn" data-message="How can I contact the POPG team?">
+                                <i class="fas fa-envelope"></i>
+                                How can I contact the POPG team?
                             </button>
                         </div>
                     </div>

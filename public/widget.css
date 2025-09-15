@@ -437,10 +437,20 @@
 .message-bubble a {
     color: var(--popg-primary);
     text-decoration: none;
+    border-bottom: 1px solid var(--popg-primary);
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: rgba(0, 123, 255, 0.05);
+    transition: all 0.2s ease;
+    display: inline-block;
+    margin: 0 2px;
 }
 
 .message-bubble a:hover {
-    text-decoration: underline;
+    background: rgba(0, 123, 255, 0.1);
+    border-bottom-color: var(--popg-secondary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 }
 
 /* Hide tables and complex formatting that don't work well in widget */

@@ -289,6 +289,8 @@ class POPGChatWidget {
             let processedContent = content
                 // Convert **bold** to <strong>
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Convert markdown links [text](url) to proper HTML links
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: none; border-bottom: 1px solid #007bff;">$1</a>')
                 // Convert bullet points to simple list items
                 .replace(/^• (.+)$/gm, '<div style="margin: 4px 0; padding-left: 12px;">• $1</div>')
                 // Convert line breaks to proper spacing
