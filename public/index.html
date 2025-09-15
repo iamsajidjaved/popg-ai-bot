@@ -1,0 +1,299 @@
+<!DOCTYPE html><!DOCTYPE html>
+
+<html lang="en"><html lang="en">
+
+<head><head>
+
+    <meta charset="UTF-8">    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>POPG AI Chat Widget</title>    <title>POPG AI Assistant</title>
+
+    <style>    <link rel="stylesheet" href="styles.css">
+
+        body {    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+            line-height: 1.6;    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+            color: #333;    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+            margin: 0;    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+            padding: 20px;    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+
+            min-height: 100vh;</head>
+
+        }<body>
+
+    <div class="app-container">
+
+        .container {        <!-- Sidebar -->
+
+            max-width: 800px;        <aside class="sidebar" id="sidebar">
+
+            margin: 0 auto;            <div class="sidebar-header">
+
+            background: rgba(255, 255, 255, 0.95);                <div class="logo">
+
+            backdrop-filter: blur(10px);                    <i class="fas fa-robot"></i>
+
+            border-radius: 20px;                    <span>POPG AI</span>
+
+            padding: 40px;                </div>
+
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);                <button class="new-chat-btn" id="newChatBtn">
+
+            text-align: center;                    <i class="fas fa-plus"></i>
+
+        }                    New Chat
+
+                </button>
+
+        h1 {            </div>
+
+            color: #2c3e50;            
+
+            margin-bottom: 20px;            <div class="sidebar-content">
+
+            font-size: 2.5em;                <!-- Chat history will go here in future updates -->
+
+        }            </div>
+
+            
+
+        p {            <div class="sidebar-footer">
+
+            font-size: 1.1em;                <div class="connection-status">
+
+            color: #666;                    <div class="status-indicator">
+
+            margin-bottom: 30px;                        <span class="status-dot" id="statusDot"></span>
+
+        }                        <span id="statusText">Connecting...</span>
+
+                    </div>
+
+        .widget-info {                </div>
+
+            background: #f8f9fa;                
+
+            border-radius: 10px;                <div class="user-info">
+
+            padding: 20px;                    <div class="user-avatar">
+
+            margin: 20px 0;                        <i class="fas fa-user"></i>
+
+            border-left: 4px solid #007bff;                    </div>
+
+            text-align: left;                    <div>
+
+        }                        <div>User</div>
+
+                        <div style="font-size: 12px; color: var(--text-muted);">Free Plan</div>
+
+        .widget-info h3 {                    </div>
+
+            color: #007bff;                </div>
+
+            margin-bottom: 10px;            </div>
+
+        }        </aside>
+
+
+
+        .feature-list {        <!-- Main Content -->
+
+            list-style: none;        <main class="main-content">
+
+            padding: 0;            <!-- Header -->
+
+        }            <div class="chat-header">
+
+                <button class="sidebar-toggle" id="sidebarToggle">
+
+        .feature-list li {                    <i class="fas fa-bars"></i>
+
+            padding: 5px 0;                </button>
+
+            padding-left: 20px;                
+
+            position: relative;                <div class="chat-title">
+
+        }                    <h1>POPG AI Assistant</h1>
+
+                    <p>Powered by advanced AI with comprehensive POPG knowledge</p>
+
+        .feature-list li::before {                </div>
+
+            content: '✓';                
+
+            position: absolute;                <div class="header-actions">
+
+            left: 0;                    <button class="header-btn" title="Export Chat">
+
+            color: #28a745;                        <i class="fas fa-download"></i>
+
+            font-weight: bold;                    </button>
+
+        }                    <button class="header-btn" title="Settings">
+
+    </style>                        <i class="fas fa-cog"></i>
+
+</head>                    </button>
+
+<body>                </div>
+
+    <div class="container">            </div>
+
+        <h1>🤖 POPG AI Assistant</h1>
+
+        <p>Welcome to the POPG AI chat widget. Click the chat button in the bottom-right corner to get started!</p>            <!-- Chat Container -->
+
+                    <div class="chat-container" id="chatContainer">
+
+        <div class="widget-info">                <!-- Welcome Screen -->
+
+            <h3>🚀 Features:</h3>                <div class="welcome-screen" id="welcomeScreen">
+
+            <ul class="feature-list">                    <div class="welcome-content">
+
+                <li>Real-time AI responses about POPG</li>                        <div class="welcome-header">
+
+                <li>Live price information</li>                            <div class="welcome-logo">
+
+                <li>Professional customer support</li>                                <i class="fas fa-robot"></i>
+
+                <li>Mobile-friendly design</li>                            </div>
+
+                <li>Copy messages and export conversations</li>                            <h2>Welcome to POPG AI</h2>
+
+                <li>11 quick-start questions</li>                            <p>Your comprehensive assistant for everything POPG. Ask me about features, tokenomics, roadmap, price information, and more. I have access to the complete POPG documentation and real-time data.</p>
+
+            </ul>                        </div>
+
+        </div>
+
+                        <div class="example-questions">
+
+        <div class="widget-info">                            <h3>Try asking me about:</h3>
+
+            <h3>💬 How to use:</h3>                            <div class="questions-grid">
+
+            <ul class="feature-list">                                <div class="question-card">
+
+                <li>Click the chat button in the bottom-right corner</li>                                    <div class="question-icon">💰</div>
+
+                <li>Choose from quick questions or type your own</li>                                    <div class="question-text">What is the current POPG price and market cap?</div>
+
+                <li>Get instant, detailed responses about POPG</li>                                </div>
+
+                <li>Use the header buttons to export or clear conversations</li>                                
+
+            </ul>                                <div class="question-card">
+
+        </div>                                    <div class="question-icon">🔄</div>
+
+    </div>                                    <div class="question-text">How does POPG's tokenomics work?</div>
+
+                                </div>
+
+    <!-- POPG AI Widget Configuration -->                                
+
+    <script>                                <div class="question-card">
+
+    window.popgConfig = {                                    <div class="question-icon">🎮</div>
+
+        position: 'bottom-right',                                    <div class="question-text">What are POPG's main features and use cases?</div>
+
+        primaryColor: '#007bff',                                </div>
+
+        margin: '20px'                                
+
+    };                                <div class="question-card">
+
+    </script>                                    <div class="question-icon">🗺️</div>
+
+                                    <div class="question-text">Tell me about POPG's roadmap and future plans</div>
+
+    <!-- POPG AI Widget Embed Script -->                                </div>
+
+    <script src="/embed.js"></script>                                
+
+</body>                                <div class="question-card">
+
+</html>                                    <div class="question-icon">⚡</div>
+                                    <div class="question-text">How does POPG's technology stack work?</div>
+                                </div>
+                                
+                                <div class="question-card">
+                                    <div class="question-icon">🌟</div>
+                                    <div class="question-text">What makes POPG unique in the gaming space?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="welcome-footer">
+                            <div class="capabilities">
+                                <div class="capability">
+                                    <i class="fas fa-globe"></i>
+                                    <span>Real-time price data</span>
+                                </div>
+                                <div class="capability">
+                                    <i class="fas fa-book"></i>
+                                    <span>Complete documentation</span>
+                                </div>
+                                <div class="capability">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Tokenomics analysis</span>
+                                </div>
+                                <div class="capability">
+                                    <i class="fas fa-code"></i>
+                                    <span>Technical insights</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages" style="display: none;">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Input Container -->
+            <div class="input-container">
+                <form class="input-form" id="inputForm">
+                    <div class="input-wrapper">
+                        <div class="input-field">
+                            <textarea 
+                                id="userInput" 
+                                placeholder="Ask me anything about POPG..."
+                                rows="1"
+                                maxlength="2000"
+                            ></textarea>
+                            <button type="submit" class="send-button" id="sendButton">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="input-footer">
+                            <div class="input-info">
+                                <span class="char-count" id="charCount">0/2000</span>
+                                <span class="powered-by">Powered by OpenAI GPT-4</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

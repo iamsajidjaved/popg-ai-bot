@@ -397,14 +397,14 @@ app.get('/api/stats', async (req, res) => {
  * Serve the widget demo page as main page
  */
 app.get('/', (req, res) => {
-    res.redirect('/professional-demo');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 /**
  * Serve the chat widget demo page
  */
 app.get('/demo', (req, res) => {
-    res.redirect('/professional-demo');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 /**
@@ -431,11 +431,6 @@ app.get('/embed.js', (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.sendFile(path.join(__dirname, 'public', 'embed.js'));
-});
-
-// Serve professional demo page
-app.get('/professional-demo', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'professional-demo.html'));
 });
 
 /**
