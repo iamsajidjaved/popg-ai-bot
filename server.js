@@ -414,6 +414,16 @@ app.get('/widget', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'widget.html'));
 });
 
+app.get('/simple-chat.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'simple-chat.html'));
+});
+
+app.get('/simple-embed.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.sendFile(path.join(__dirname, 'public', 'simple-embed.js'));
+});
+
 app.get('/widget-embed.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'widget-embed.html'));
 });
