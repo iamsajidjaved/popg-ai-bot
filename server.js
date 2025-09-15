@@ -61,15 +61,65 @@ function formatPriceData(priceData) {
         return "I apologize, but I cannot retrieve the current POPG price at this moment. Please try again later.";
     }
 
-    const formatPrice = (price) => `$${parseFloat(price).toFixed(5)}`;
+    // Enhanced price formatting function
+    const formatPrice = (price) => {
+        if (price === 'N/A' || !price) return 'N/A';
+        
+        const numPrice = parseFloat(price);
+        if (isNaN(numPrice)) return 'N/A';
+        
+        // Format based on price range for better readability
+        if (numPrice >= 1) {
+            // For prices $1 and above, show 2-4 decimal places
+            return `$${numPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4
+            })}`;
+        } else if (numPrice >= 0.01) {
+            // For prices $0.01 and above, show up to 4 decimal places
+            return `$${numPrice.toFixed(4)}`;
+        } else if (numPrice >= 0.0001) {
+            // For small prices, show 6 decimal places
+            return `$${numPrice.toFixed(6)}`;
+        } else {
+            // For very small prices, use scientific notation
+            return `$${numPrice.toExponential(3)}`;
+        }
+    };
+
+    // Calculate price change if available
+    const getPriceChangeInfo = () => {
+        if (priceData.coinmarketcap?.change_24h) {
+            const change = parseFloat(priceData.coinmarketcap.change_24h);
+            const changeSymbol = change >= 0 ? '📈' : '📉';
+            const changeText = change >= 0 ? '+' : '';
+            return `\n\n24h Change: ${changeSymbol} ${changeText}${change.toFixed(2)}%`;
+        }
+        return '';
+    };
+
+    // Format market cap if available
+    const getMarketCapInfo = () => {
+        if (priceData.coinmarketcap?.market_cap) {
+            const marketCap = parseFloat(priceData.coinmarketcap.market_cap);
+            const formatMarketCap = (value) => {
+                if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+                if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+                if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
+                return `$${value.toFixed(2)}`;
+            };
+            return `\nMarket Cap: ${formatMarketCap(marketCap)}`;
+        }
+        return '';
+    };
     
-    return `The current POPG price is ${formatPrice(priceData.average)}.
+    return `💰 **Current POPG Price: ${formatPrice(priceData.average)}**${getPriceChangeInfo()}
 
-Price information from different sources:
-• CoinMarketCap: ${formatPrice(priceData.coinmarketcap?.price || 'N/A')}
-• CoinGecko: ${formatPrice(priceData.coingecko?.price || 'N/A')}
+📊 **Price Sources:**
+• CoinMarketCap: ${formatPrice(priceData.coinmarketcap?.price)}
+• CoinGecko: ${formatPrice(priceData.coingecko?.price)}${getMarketCapInfo()}
 
-This data is sourced from price.popg.com and is updated regularly.`;
+*Data sourced from price.popg.com and updated regularly*`;
 }
 
 /**
@@ -155,10 +205,31 @@ async function generateAIResponse(userQuery, relevantContent) {
             priceData = await fetchPOPGPrice();
             if (priceData) {
                 console.log('✅ Price data retrieved:', priceData);
+                
+                // Use the same enhanced formatting function
+                const formatPriceForContext = (price) => {
+                    if (price === 'N/A' || !price) return 'N/A';
+                    const numPrice = parseFloat(price);
+                    if (isNaN(numPrice)) return 'N/A';
+                    
+                    if (numPrice >= 1) {
+                        return `$${numPrice.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4
+                        })}`;
+                    } else if (numPrice >= 0.01) {
+                        return `$${numPrice.toFixed(4)}`;
+                    } else if (numPrice >= 0.0001) {
+                        return `$${numPrice.toFixed(6)}`;
+                    } else {
+                        return `$${numPrice.toExponential(3)}`;
+                    }
+                };
+
                 priceContext = `\n\nCurrent POPG Price Data:
-- Average Price: $${priceData.average}
-- CoinMarketCap: $${priceData.coinmarketcap?.price || 'N/A'} (Updated: ${priceData.coinmarketcap?.timestamp || 'N/A'})
-- CoinGecko: $${priceData.coingecko?.price || 'N/A'} (Updated: ${priceData.coingecko?.timestamp || 'N/A'})`;
+- Average Price: ${formatPriceForContext(priceData.average)}
+- CoinMarketCap: ${formatPriceForContext(priceData.coinmarketcap?.price)} (Updated: ${priceData.coinmarketcap?.timestamp || 'N/A'})
+- CoinGecko: ${formatPriceForContext(priceData.coingecko?.price)} (Updated: ${priceData.coingecko?.timestamp || 'N/A'})`;
             } else {
                 console.log('❌ Failed to retrieve price data');
             }
