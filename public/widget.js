@@ -1,8 +1,12 @@
 // POPG AI Chat Widget
 class POPGChatWidget {
     constructor(options = {}) {
+        // Detect if we're running locally or on a server
+        const isLocalFile = window.location.protocol === 'file:';
+        const defaultApiUrl = isLocalFile ? 'http://localhost:3000/api/chat' : '/api/chat';
+        
         this.options = {
-            apiUrl: options.apiUrl || '/api/chat',
+            apiUrl: options.apiUrl || defaultApiUrl,
             position: options.position || 'bottom-right',
             theme: options.theme || 'light',
             autoOpen: options.autoOpen || false,
@@ -233,11 +237,25 @@ class POPGChatWidget {
             console.error('Error sending message:', error);
             
             this.hideTyping();
-            this.showError('Sorry, I encountered an error. Please try again.');
             
-            // Add error message
+            // Different error messages based on the error type
+            let errorMessage = 'Sorry, I encountered an error. Please try again.';
+            
+            if (error.message.includes('Failed to fetch') || error.message.includes('ERR_FAILED')) {
+                if (window.location.protocol === 'file:') {
+                    errorMessage = 'Please serve this page through the server (http://localhost:3000/demo) instead of opening the HTML file directly.';
+                } else {
+                    errorMessage = 'Unable to connect to the server. Please check if the server is running.';
+                }
+            }
+            
+            this.showError(errorMessage);
+            
+            // Add error message to chat
             this.addMessage(
-                'I apologize, but I\'m having trouble connecting right now. Please try again in a moment.',
+                window.location.protocol === 'file:' ? 
+                    '⚠️ This widget needs to be served through a web server to work properly. Please visit http://localhost:3000/demo to test the widget.' :
+                    'I apologize, but I\'m having trouble connecting right now. Please try again in a moment.',
                 'bot'
             );
             
@@ -406,19 +424,28 @@ class POPGChatWidget {
 document.addEventListener('DOMContentLoaded', function() {
     const widgetElement = document.getElementById('popgChatWidget');
     if (widgetElement) {
+        // Detect environment and set appropriate API URL
+        const isLocalFile = window.location.protocol === 'file:';
+        const defaultApiUrl = isLocalFile ? 'http://localhost:3000/api/chat' : '/api/chat';
+        
         // Get configuration from data attributes
         const config = {
-            apiUrl: widgetElement.dataset.apiUrl,
+            apiUrl: widgetElement.dataset.apiUrl || defaultApiUrl,
             position: widgetElement.dataset.position,
             theme: widgetElement.dataset.theme,
             autoOpen: widgetElement.dataset.autoOpen === 'true',
             showNotification: widgetElement.dataset.showNotification !== 'false'
         };
         
+        // Show warning if opened as file
+        if (isLocalFile) {
+            console.warn('⚠️ Widget opened as file:// - For full functionality, please serve through web server: http://localhost:3000/demo');
+        }
+        
         // Initialize widget
         window.popgChatWidget = new POPGChatWidget(config);
         
-        console.log('POPG Chat Widget ready!');
+        console.log('POPG Chat Widget ready!', isLocalFile ? '(File mode - limited functionality)' : '(Server mode)');
     }
 });
 
