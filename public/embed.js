@@ -39,9 +39,16 @@
     function createWidget() {
         const widgetContainer = document.createElement('div');
         widgetContainer.id = 'popg-chat-widget-container';
+        
+        // Get position styles as object
+        const positionStyles = getPositionStyles();
+        
         widgetContainer.style.cssText = `
             position: fixed;
-            ${getPositionStyles()}
+            bottom: ${positionStyles.bottom};
+            right: ${positionStyles.right};
+            left: ${positionStyles.left};
+            top: ${positionStyles.top};
             z-index: ${config.zIndex};
             width: 350px;
             height: 500px;
@@ -72,9 +79,16 @@
         // Create toggle button
         const toggleButton = document.createElement('div');
         toggleButton.id = 'popg-chat-toggle';
+        
+        // Get button position styles
+        const buttonStyles = getPositionStyles(true);
+        
         toggleButton.style.cssText = `
             position: fixed;
-            ${getPositionStyles(true)}
+            bottom: ${buttonStyles.bottom};
+            right: ${buttonStyles.right};
+            left: ${buttonStyles.left};
+            top: ${buttonStyles.top};
             z-index: ${config.zIndex + 1};
             width: 60px;
             height: 60px;
