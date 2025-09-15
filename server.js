@@ -404,7 +404,7 @@ app.get('/', (req, res) => {
  * Serve the chat widget demo page
  */
 app.get('/demo', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'web.html'));
+    res.redirect('/professional-demo');
 });
 
 /**
@@ -431,16 +431,6 @@ app.get('/embed.js', (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.sendFile(path.join(__dirname, 'public', 'embed.js'));
-});
-
-// Serve embed demo page
-app.get('/embed-demo', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'embed-demo.html'));
-});
-
-// Serve link formatting test page
-app.get('/link-test', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'link-test.html'));
 });
 
 // Serve professional demo page
