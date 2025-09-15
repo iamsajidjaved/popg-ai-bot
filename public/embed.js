@@ -64,7 +64,7 @@
 
         // Create iframe for the widget
         const iframe = document.createElement('iframe');
-        iframe.src = `${config.serverUrl}/chat-interface.html`;
+        iframe.src = `${config.serverUrl}/widget-embed.html`;
         iframe.style.cssText = `
             width: 100%;
             height: 100%;

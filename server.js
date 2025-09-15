@@ -414,6 +414,10 @@ app.get('/widget', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'widget.html'));
 });
 
+app.get('/widget-embed.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'widget-embed.html'));
+});
+
 app.get('/chat-interface.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'chat-interface.html'));
 });
